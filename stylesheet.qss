@@ -1,0 +1,28 @@
+QFrame[cssClass="auth_wrapper"] {
+    background-color: #242526;
+    color: white;
+}
+
+QLineEdit[cssClass="lineEdit-dark"] {
+    background-color: #3e4042;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    padding: 10px;
+}
+
+.QPushButton[cssClass="pushButton-dark"]
+{
+    background-color: #3a3b3c;
+    color: white;
+    outline: none;
+    border: none;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.QPushButton[cssClass="pushButton-dark"]:hover
+{
+    background-color: #505151;
+
+}

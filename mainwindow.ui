@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1200</width>
+    <height>1181</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>1200</width>
+    <height>0</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>LanguageTutor</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="styleSheet">
+    <string notr="true">#centralwidget {
+	background-color: #18191a;
+}</string>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QSplitter" name="splitter">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color: white;</string>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QWidget" name="verticalWidget" native="true">
+       <property name="maximumSize">
+        <size>
+         <width>500</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_9" stretch="0,0,0">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <property name="sizeConstraint">
+         <enum>QLayout::SetDefaultConstraint</enum>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="appNameLabel">
+          <property name="font">
+           <font>
+            <pointsize>19</pointsize>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">#appNameLabel {
+	background-color: #262626;
+	border-bottom: 1px solid #303030;
+}</string>
+          </property>
+          <property name="text">
+           <string>LanguageTutor</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="margin">
+           <number>12</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QListWidget" name="sideMenu">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">#sideMenu {
+	background-color: #262626;
+	text-align: center;
+}</string>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
+          </property>
+          <property name="resizeMode">
+           <enum>QListView::Adjust</enum>
+          </property>
+          <property name="spacing">
+           <number>6</number>
+          </property>
+          <property name="viewMode">
+           <enum>QListView::ListMode</enum>
+          </property>
+          <property name="selectionRectVisible">
+           <bool>true</bool>
+          </property>
+          <property name="itemAlignment">
+           <set>Qt::AlignHCenter</set>
+          </property>
+          <property name="currentRow">
+           <number>-1</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QWidget" name="logoutWrapper" native="true">
+          <property name="styleSheet">
+           <string notr="true">#logoutWrapper {
+	background-color: #262626;
+}</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_20">
+           <property name="leftMargin">
+            <number>11</number>
+           </property>
+           <property name="rightMargin">
+            <number>11</number>
+           </property>
+           <item>
+            <widget class="QPushButton" name="logoutPushButton">
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="cursor">
+              <cursorShape>PointingHandCursor</cursorShape>
+             </property>
+             <property name="text">
+              <string>Wyloguj się</string>
+             </property>
+             <property name="flat">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="verticalLayoutWidget_2">
+       <layout class="QVBoxLayout" name="main_content_wrapper">
+        <property name="spacing">
+         <number>7</number>
+        </property>
+        <property name="sizeConstraint">
+         <enum>QLayout::SetDefaultConstraint</enum>
+        </property>
+        <property name="topMargin">
+         <number>14</number>
+        </property>
+        <item>
+         <widget class="QWidget" name="grammar_widget" native="true">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_15">
+           <item>
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>Grammar</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1200</width>
+     <height>26</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
