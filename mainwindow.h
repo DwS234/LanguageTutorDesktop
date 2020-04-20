@@ -34,6 +34,7 @@ private:
     QListWidgetItem* wordsItem;
     QListWidgetItem* repsItem;
     QListWidgetItem* grammarItem;
+    QListWidgetItem* searchItem;
     QListWidgetItem* currentSelectedSideMenuItem;
 
     void createSideMenu();

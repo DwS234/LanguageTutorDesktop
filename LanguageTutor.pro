@@ -23,6 +23,8 @@ SOURCES += \
     mainwindow.cpp \
     registerwindow.cpp \
     repetitionswidget.cpp \
+    searchwidget.cpp \
+    wordsearchresultsdialog.cpp \
     wordswidget.cpp
 
 HEADERS += \
@@ -32,6 +34,8 @@ HEADERS += \
     mainwindow.h \
     registerwindow.h \
     repetitionswidget.h \
+    searchwidget.h \
+    wordsearchresultsdialog.h \
     wordswidget.h
 
 FORMS += \
@@ -40,6 +44,8 @@ FORMS += \
     mainwindow.ui \
     registerwindow.ui \
     repetitionswidget.ui \
+    searchwidget.ui \
+    wordsearchresultsdialog.ui \
     wordswidget.ui
 
 # Default rules for deployment.

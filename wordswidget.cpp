@@ -9,8 +9,9 @@
 WordsWidget::WordsWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::WordsWidget),
-    networkAccessManager(new QNetworkAccessManager(this)),
-    settings(new QSettings("dawid", "LanguageTutor"))
+    settings(new QSettings("dawid", "LanguageTutor")),
+    networkAccessManager(new QNetworkAccessManager(this))
+
 {
     ui->setupUi(this);
 

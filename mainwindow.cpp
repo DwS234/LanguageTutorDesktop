@@ -10,6 +10,7 @@
 #include "repetitionswidget.h"
 #include "homewidget.h"
 #include "wordswidget.h"
+#include "searchwidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -63,6 +64,10 @@ void MainWindow::onSideMenuCurrentItemChanged(QListWidgetItem* current, QListWid
         }
         else if(previous == grammarItem)
             ui->grammar_widget->setVisible(false);
+        else if(previous == searchItem) {
+            ui->main_content_wrapper->removeWidget(currentMainContent);
+            currentMainContent->close();
+        }
     }
 
     if(current == homeItem) {
@@ -74,11 +79,15 @@ void MainWindow::onSideMenuCurrentItemChanged(QListWidgetItem* current, QListWid
         currentMainContent = wordsWidget;
         ui->main_content_wrapper->addWidget(wordsWidget);
     } else if(current == repsItem) {
-          RepetitionsWidget* repsWidget = new RepetitionsWidget;
-          currentMainContent = repsWidget;
-          ui->main_content_wrapper->addWidget(repsWidget);
+        RepetitionsWidget* repsWidget = new RepetitionsWidget;
+        currentMainContent = repsWidget;
+        ui->main_content_wrapper->addWidget(repsWidget);
     } else if(current == grammarItem) {
         ui->grammar_widget->setVisible(true);
+    } else if(current == searchItem) {
+        SearchWidget* searchWidget = new SearchWidget;
+        currentMainContent = searchWidget;
+        ui->main_content_wrapper->addWidget(searchWidget);
     }
 }
 
@@ -118,4 +127,10 @@ void MainWindow::createSideMenu() {
     grammarItemFont.setPointSize(12);
     grammarItem->setFont(grammarItemFont);
     grammarItem->setTextAlignment(Qt::AlignCenter);
+
+    searchItem =  new QListWidgetItem(tr("Szukaj"), sideMenu);
+    QFont searchItemFont = searchItem->font();
+    searchItemFont.setPointSize(12);
+    searchItem->setFont(searchItemFont);
+    searchItem->setTextAlignment(Qt::AlignCenter);
 }
