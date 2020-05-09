@@ -12,7 +12,7 @@ RepetitionsWidget::RepetitionsWidget(QWidget *parent) :
     networkAccessManager(new QNetworkAccessManager(this))
 {
     ui->setupUi(this);
-
+    hideRepsFrame();
     resetUiToDefault();
 
     sendDueRepsCountRequest();
@@ -67,7 +67,10 @@ void RepetitionsWidget::replyFinished(QNetworkReply* reply) {
                 setCorrectAnswer(wordObject["polish"].toString());
 
                 insertDueRepsJsonArrayToDueRepsList(dueReps);
+                hideLoadingScreen();
+                showRepsFrame();
             } else {
+                hideLoadingScreen();
                 hideRepsFrame();
                 showNoMoreRepsDueMessage();
             }
@@ -302,9 +305,18 @@ void RepetitionsWidget::sendDueRepsCountRequest() {
 }
 
 void RepetitionsWidget::sendDueRepsRequest() {
+    showLoadingScreen();
     QNetworkRequest request;
     request.setUrl(QUrl(BASE_URL + DUE_REPS_PATH));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     request.setRawHeader(QByteArray("Authorization"), QByteArray(qPrintable("Bearer " + settings->value("accessToken").toString())));
     networkAccessManager->get(request);
+}
+
+void RepetitionsWidget::hideLoadingScreen() {
+    ui->loadingScreen->setVisible(false);
+}
+
+void RepetitionsWidget::showLoadingScreen() {
+    ui->loadingScreen->setVisible(true);
 }

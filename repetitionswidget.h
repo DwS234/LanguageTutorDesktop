@@ -37,6 +37,8 @@ private:
     const QString DUE_REPS_PATH = "/api/repetitions/due";
     const QRegExp SET_REP_PATH_REGEXP{"/api/repetitions/\\d+/set"};
 
+    void hideLoadingScreen();
+    void showLoadingScreen();
     void resetUiToDefault();
     void showNoMoreRepsDueMessage();
     void hideNoMoreRepsDueMessage();

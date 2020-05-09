@@ -26,6 +26,10 @@ private:
     Ui::LoginWindow *ui;
     QSettings* settings;
     QNetworkAccessManager* networkAccessManager;
+    void showLoginScreen();
+    void hideLoginScreen();
+    void showLoadingScreen();
+    void hideLoadingScreen();
 };
 
 #endif // LOGINWINDOW_H

@@ -1,11 +1,7 @@
 <RCC>
-    <qresource prefix="/images">
-        <file>auth-background.jpg</file>
-    </qresource>
+    <qresource prefix="/images"/>
     <qresource prefix="/stylesheet">
         <file>stylesheet.qss</file>
     </qresource>
-    <qresource prefix="/icons">
-        <file>home.png</file>
-    </qresource>
+    <qresource prefix="/icons"/>
 </RCC>

@@ -14,6 +14,7 @@ HomeWidget::HomeWidget(QWidget *parent) :
     ui->setupUi(this);
     userMap = settings->value("user").toMap();
 
+    hideHomeScreen();
     setWelcomeMessage(userMap.value("username").toString());
     fetchRepetitionsCount();
     fetchRecentRepetitions(5);
@@ -39,6 +40,7 @@ void HomeWidget::fetchRepetitionsCount() {
 }
 
 void HomeWidget::fetchRecentRepetitions(int howMany=5) {
+    showLoadingScreen();
     QNetworkRequest request;
     request.setUrl(QUrl(QString(BASE_URL + RECENT_REPETITIONS_PATH + "?size=%1").arg(howMany)));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
@@ -63,6 +65,8 @@ void HomeWidget::replyFinished(QNetworkReply* reply) {
             QJsonArray recentRepetitions = jsdoc.array();
 
             setRecentRepetitionTable(recentRepetitions);
+            hideLoadingScreen();
+            showHomeScreen();
         }
     } else {
         //Error handling. Still figuring out how to implement this
@@ -131,5 +135,21 @@ void HomeWidget::createTableWidgetItemsForRecentRepsTable(QJsonArray recentRepet
         ui->recentRepetitionsTable->setItem(row, 3, howManyTimesSeenItem);
         row++;
     }
+}
+
+void HomeWidget::hideLoadingScreen() {
+    ui->loadingScreen->setVisible(false);
+}
+
+void HomeWidget::showLoadingScreen() {
+    ui->loadingScreen->setVisible(true);
+}
+
+void HomeWidget::showHomeScreen() {
+    ui->home_widget->setVisible(true);
+}
+
+void HomeWidget::hideHomeScreen() {
+    ui->home_widget->setVisible(false);
 }
 

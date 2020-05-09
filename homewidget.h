@@ -30,6 +30,10 @@ private:
     const QString REPS_COUNT_PATH = "/api/repetitions/count";
     const QString RECENT_REPETITIONS_PATH = "/api/repetitions/recentlyModfied";
 
+    void showLoadingScreen();
+    void hideLoadingScreen();
+    void showHomeScreen();
+    void hideHomeScreen();
     void setWelcomeMessage(QString username);
     void setRepsCountInfo(QString repsCount);
     void setRecentRepetitionTable(QJsonArray recentRepetitions);

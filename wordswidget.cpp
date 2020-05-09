@@ -14,7 +14,8 @@ WordsWidget::WordsWidget(QWidget *parent) :
 
 {
     ui->setupUi(this);
-
+    showLoadingScreen();
+    hideWordsScreen();
     fetchWords();
 
     connect(networkAccessManager, &QNetworkAccessManager::finished, this, &WordsWidget::replyFinished);
@@ -43,6 +44,8 @@ void WordsWidget::replyFinished(QNetworkReply* reply) {
             createWordFrames(words);
             if(words.size() == 0)
                 hideMoreWordsButton();
+            hideLoadingScreen();
+            showWordsScreen();
         } else if(isThisRepAddedResponse(path, operation)) {
             lastAddDeleteRepClicked->setText("-");
         } else if(isThisRepDeletedResponse(path, operation)) {
@@ -178,6 +181,22 @@ void WordsWidget::deleteRep(int wordId) {
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     request.setRawHeader(QByteArray("Authorization"), QByteArray(qPrintable("Bearer " + settings->value("accessToken").toString())));
     networkAccessManager->deleteResource(request);
+}
+
+void WordsWidget::showLoadingScreen() {
+    ui->loadingScreen->setVisible(true);
+}
+
+void WordsWidget::hideLoadingScreen() {
+    ui->loadingScreen->setVisible(false);
+}
+
+void WordsWidget::showWordsScreen() {
+    ui->words_widget->setVisible(true);
+}
+
+void WordsWidget::hideWordsScreen() {
+    ui->words_widget->setVisible(false);
 }
 
 

@@ -16,6 +16,7 @@ LoginWindow::LoginWindow(QWidget *parent) :
     networkAccessManager(new QNetworkAccessManager(this))
 {
     ui->setupUi(this);
+    hideLoadingScreen();
     ui->login_wrapper->setProperty("cssClass", "auth_wrapper");
     ui->usernameLineEdit->setProperty("cssClass", "lineEdit-dark");
     ui->passwordLineEdit->setProperty("cssClass", "lineEdit-dark");
@@ -55,6 +56,8 @@ void LoginWindow::replyFinished(QNetworkReply* reply) {
     } else {
         QMessageBox::warning(this, "Błąd", "Wystąpił błąd. Pracujemy nad tym");
     }
+    hideLoadingScreen();
+    showLoginScreen();
     reply->deleteLater();
 }
 
@@ -67,6 +70,8 @@ void LoginWindow::onRegisterButtonClicked() {
 
 void LoginWindow::onLoginButtonClicked()
 {
+    showLoadingScreen();
+    hideLoginScreen();
     QString username = ui->usernameLineEdit->text();
     QString password = ui->passwordLineEdit->text();
 
@@ -80,4 +85,20 @@ void LoginWindow::onLoginButtonClicked()
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
     networkAccessManager->post(request,payload);
+}
+
+void LoginWindow::showLoginScreen() {
+    ui->loginScreenn->setVisible(true);
+}
+
+void LoginWindow::hideLoginScreen() {
+    ui->loginScreenn->setVisible(false);
+}
+
+void LoginWindow::showLoadingScreen() {
+    ui->loadingScreen->setVisible(true);
+}
+
+void LoginWindow::hideLoadingScreen() {
+    ui->loadingScreen->setVisible(false);
 }

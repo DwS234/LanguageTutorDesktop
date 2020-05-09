@@ -38,6 +38,10 @@ private:
     const QString REP_ADD_PATH = "/api/repetitions";
     const QRegExp REP_DELETE_PATH_REGEXP{"/api/repetitions/word/\\d+"};
 
+    void hideLoadingScreen();
+    void showLoadingScreen();
+    void hideWordsScreen();
+    void showWordsScreen();
     QFrame* createWordFrame(QJsonObject word);
     void createWordFrames(QJsonArray words);
     void addWordToReps(QJsonObject word);
