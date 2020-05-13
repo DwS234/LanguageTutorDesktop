@@ -25,7 +25,7 @@ private:
     QSettings* settings;
     QNetworkAccessManager* networkAccessManager;
 
-    const QString BASE_URL = "http://localhost:8081";
+    const QString BASE_URL = "https://languagetutor-api-1-1589278673698.azurewebsites.net";
     const QRegExp SEARCH_WORD_PATH_REGEXP{"/api/words/all/\\w+/\\w+"};
 
     void searchWord();

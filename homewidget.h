@@ -26,7 +26,7 @@ private:
     QNetworkAccessManager* networkAccessManager;
     QMap<QString, QVariant> userMap;
 
-    const QString BASE_URL = "http://localhost:8081";
+    const QString BASE_URL = "https://languagetutor-api-1-1589278673698.azurewebsites.net";
     const QString REPS_COUNT_PATH = "/api/repetitions/count";
     const QString RECENT_REPETITIONS_PATH = "/api/repetitions/recentlyModfied";
 

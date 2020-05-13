@@ -33,13 +33,13 @@ private:
     int currentWordsRow = 0;
     int currentWordsCol = 0;
 
-    const QString BASE_URL = "http://localhost:8081";
+    const QString BASE_URL = "https://languagetutor-api-1-1589278673698.azurewebsites.net";
     const QString WORDS_PATH = "/api/words/all/s";
     const QString REP_ADD_PATH = "/api/repetitions";
     const QRegExp REP_DELETE_PATH_REGEXP{"/api/repetitions/word/\\d+"};
 
     void hideLoadingScreen();
-    void showLoadingScreen();
+    void showLoadingScreen(QString text="Ładowanie...");
     void hideWordsScreen();
     void showWordsScreen();
     QFrame* createWordFrame(QJsonObject word);

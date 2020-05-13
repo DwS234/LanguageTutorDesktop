@@ -32,7 +32,7 @@ private:
     int currentRepIndex = 0;
     int currentDueRepsPage;
     int currentRepsCount = -1;
-    const QString BASE_URL = "http://localhost:8081";
+    const QString BASE_URL = "https://languagetutor-api-1-1589278673698.azurewebsites.net";
     const QString DUE_REPS_COUNT_PATH = "/api/repetitions/due/count";
     const QString DUE_REPS_PATH = "/api/repetitions/due";
     const QRegExp SET_REP_PATH_REGEXP{"/api/repetitions/\\d+/set"};

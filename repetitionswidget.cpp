@@ -54,6 +54,7 @@ void RepetitionsWidget::replyFinished(QNetworkReply* reply) {
                 showNoMoreRepsDueMessage();
                 hideRepsFrame();
             }
+            hideLoadingScreen();
          } else if(isThisDueRepsResponse(path)) {
             QJsonDocument jsdoc = QJsonDocument::fromJson(reply->readAll());
 
@@ -268,17 +269,17 @@ void RepetitionsWidget::onAnswerButtonClicked() {
     QNetworkRequest request;
 
     if(QString::compare(clickedButtonText, "0") == 0)
-        request.setUrl(QUrl(QString("http://localhost:8081/api/repetitions/%1/set?extreme=").arg(repId)));
+        request.setUrl(QUrl(QString("https://languagetutor-api-1-1589278673698.azurewebsites.net/api/repetitions/%1/set?extreme=").arg(repId)));
     else if(QString::compare(clickedButtonText, "1") == 0)
-         request.setUrl(QUrl(QString("http://localhost:8081/api/repetitions/%1/set?hard").arg(repId)));
+         request.setUrl(QUrl(QString("https://languagetutor-api-1-1589278673698.azurewebsites.net/api/repetitions/%1/set?hard").arg(repId)));
     else if(QString::compare(clickedButtonText, "2") == 0)
-        request.setUrl(QUrl(QString("http://localhost:8081/api/repetitions/%1/set?pretty-hard").arg(repId)));
+        request.setUrl(QUrl(QString("https://languagetutor-api-1-1589278673698.azurewebsites.net/api/repetitions/%1/set?pretty-hard").arg(repId)));
     else if(QString::compare(clickedButtonText, "3") == 0)
-        request.setUrl(QUrl(QString("http://localhost:8081/api/repetitions/%1/set?medium").arg(repId)));
+        request.setUrl(QUrl(QString("https://languagetutor-api-1-1589278673698.azurewebsites.net/api/repetitions/%1/set?medium").arg(repId)));
     else if(QString::compare(clickedButtonText, "4") == 0)
-        request.setUrl(QUrl(QString("http://localhost:8081/api/repetitions/%1/set?pretty-easy").arg(repId)));
+        request.setUrl(QUrl(QString("https://languagetutor-api-1-1589278673698.azurewebsites.net/api/repetitions/%1/set?pretty-easy").arg(repId)));
     else if(QString::compare(clickedButtonText, "5") == 0)
-        request.setUrl(QUrl(QString("http://localhost:8081/api/repetitions/%1/set?easy").arg(repId)));
+        request.setUrl(QUrl(QString("https://languagetutor-api-1-1589278673698.azurewebsites.net/api/repetitions/%1/set?easy").arg(repId)));
 
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     request.setRawHeader(QByteArray("Authorization"), QByteArray(qPrintable("Bearer " + settings->value("accessToken").toString())));
@@ -297,6 +298,7 @@ void RepetitionsWidget::resetUiToDefault() {
 }
 
 void RepetitionsWidget::sendDueRepsCountRequest() {
+    showLoadingScreen();
     QNetworkRequest request;
     request.setUrl(QUrl(BASE_URL + DUE_REPS_COUNT_PATH));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");

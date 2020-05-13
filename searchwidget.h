@@ -29,7 +29,7 @@ private:
     QSettings* settings;
     QNetworkAccessManager* networkAccessManager;
 
-    const QString BASE_URL = "http://localhost:8081";
+    const QString BASE_URL = "https://languagetutor-api-1-1589278673698.azurewebsites.net";
     const QString WORDS_SEARCH_PATH = "/api/words/search";
 
     void fetchWordHints(QString word);

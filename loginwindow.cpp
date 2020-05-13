@@ -81,7 +81,7 @@ void LoginWindow::onLoginButtonClicked()
     QByteArray payload=QJsonDocument::fromVariant(userData).toJson();
 
     QNetworkRequest request;
-    request.setUrl(QUrl("http://localhost:8081/api/auth/signin"));
+    request.setUrl(QUrl("https://languagetutor-api-1-1589278673698.azurewebsites.net/api/auth/signin"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
     networkAccessManager->post(request,payload);

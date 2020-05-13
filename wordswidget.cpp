@@ -9,9 +9,8 @@
 WordsWidget::WordsWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::WordsWidget),
-    settings(new QSettings("dawid", "LanguageTutor")),
-    networkAccessManager(new QNetworkAccessManager(this))
-
+    networkAccessManager(new QNetworkAccessManager(this)),
+    settings(new QSettings("dawid", "LanguageTutor"))
 {
     ui->setupUi(this);
     showLoadingScreen();
@@ -48,8 +47,12 @@ void WordsWidget::replyFinished(QNetworkReply* reply) {
             showWordsScreen();
         } else if(isThisRepAddedResponse(path, operation)) {
             lastAddDeleteRepClicked->setText("-");
+            showWordsScreen();
+            hideLoadingScreen();
         } else if(isThisRepDeletedResponse(path, operation)) {
             lastAddDeleteRepClicked->setText("+");
+            showWordsScreen();
+            hideLoadingScreen();
         }
     } else {
         // Error. Must be implemented yet.
@@ -58,6 +61,8 @@ void WordsWidget::replyFinished(QNetworkReply* reply) {
 
 void WordsWidget::onMoreWordsButtonClicked() {
     currentWordsPage++;
+    showLoadingScreen();
+    hideWordsScreen();
     fetchWords();
 }
 
@@ -118,15 +123,19 @@ void WordsWidget::onWordAddDeleteClicked() {
         wordObj.insert("id", word_id);
         word.insert("word", wordObj);
 
+        showLoadingScreen("Trwa dodawanie słowka do systemu powtórek...");
+        hideWordsScreen();
         addWordToReps(word);
     } else {
+        showLoadingScreen("Trwa usuwanie słówka z systemu powtórek...");
+        hideWordsScreen();
         deleteRep(word_id);
     }
 }
 
 void WordsWidget::fetchWords() {
     QNetworkRequest request;
-    request.setUrl(QUrl(QString("http://localhost:8081/api/words/all/s?page=%1").arg(currentWordsPage)));
+    request.setUrl(QUrl(QString("https://languagetutor-api-1-1589278673698.azurewebsites.net/api/words/all/s?page=%1").arg(currentWordsPage)));
 
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     request.setRawHeader(QByteArray("Authorization"), QByteArray(qPrintable("Bearer " + settings->value("accessToken").toString())));
@@ -177,14 +186,15 @@ void WordsWidget::addWordToReps(QJsonObject word) {
 
 void WordsWidget::deleteRep(int wordId) {
     QNetworkRequest request;
-    request.setUrl(QUrl(QString("http://localhost:8081/api/repetitions/word/%1").arg(wordId)));
+    request.setUrl(QUrl(QString("https://languagetutor-api-1-1589278673698.azurewebsites.net/api/repetitions/word/%1").arg(wordId)));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     request.setRawHeader(QByteArray("Authorization"), QByteArray(qPrintable("Bearer " + settings->value("accessToken").toString())));
     networkAccessManager->deleteResource(request);
 }
 
-void WordsWidget::showLoadingScreen() {
+void WordsWidget::showLoadingScreen(QString text) {
     ui->loadingScreen->setVisible(true);
+    ui->loadingScreenLabel->setText(text);
 }
 
 void WordsWidget::hideLoadingScreen() {

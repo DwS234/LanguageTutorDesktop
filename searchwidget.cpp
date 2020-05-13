@@ -33,10 +33,11 @@ void SearchWidget::onSearchTextEdited(const QString& text) {
 void SearchWidget::replyFinished(QNetworkReply* reply) {
     QVariant statusCodeV = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
     int statusCode = statusCodeV.toInt();
+    QNetworkRequest request = reply->request();
+    QNetworkAccessManager::Operation operation = reply->operation();
+    QString path = request.url().path();
     if(statusCode >= 200 && statusCode <= 299) {
-        QNetworkRequest request = reply->request();
-        QNetworkAccessManager::Operation operation = reply->operation();
-        QString path = request.url().path();
+
         qDebug("%s", qPrintable(path));
         if(isThisWordsSearchResponse(path)) {
             QJsonDocument jsdoc = QJsonDocument::fromJson(reply->readAll());
@@ -45,6 +46,8 @@ void SearchWidget::replyFinished(QNetworkReply* reply) {
             setWordHints(wordHints);
         }
     } else {
+        qDebug("Error code: %d", statusCode);
+        qDebug("%s", qPrintable(path));
         qDebug("Some error occured");
     }
     reply->deleteLater();
