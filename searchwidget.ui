@@ -47,26 +47,6 @@ background-color: #3e4042;</string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QPushButton" name="searchPushButton">
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-          </font>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">background-color: #3a3b3c;
-color: white;
-outline: none;
-border: none;
-border-radius: 5px;
-padding: 5px;</string>
-         </property>
-         <property name="text">
-          <string>Szukaj</string>
-         </property>
-        </widget>
-       </item>
       </layout>
      </item>
      <item>
