@@ -8,12 +8,11 @@
 #include "QMessageBox"
 #include "QRegularExpressionValidator"
 #include "QRegularExpression"
+#include "client/authresourceclient.h"
 
 LoginWindow::LoginWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::LoginWindow),
-    settings(new QSettings("dawid", "LanguageTutor")),
-    networkAccessManager(new QNetworkAccessManager(this))
+    ui(new Ui::LoginWindow)
 {
     ui->setupUi(this);
     hideLoadingScreen();
@@ -27,38 +26,11 @@ LoginWindow::LoginWindow(QWidget *parent) :
 
     connect(ui->registerPushButton, &QPushButton::clicked, this, &LoginWindow::onRegisterButtonClicked);
     connect(ui->loginButton, &QPushButton::clicked, this, &LoginWindow::onLoginButtonClicked);
-    connect(networkAccessManager, &QNetworkAccessManager::finished, this, &LoginWindow::replyFinished);
 }
 
 LoginWindow::~LoginWindow()
 {
     delete ui;
-}
-
-void LoginWindow::replyFinished(QNetworkReply* reply) {
-    QVariant statusCodeV = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-    int statusCode = statusCodeV.toInt();
-    if(statusCode == 200) {
-        qDebug("Status code correct");
-        QJsonDocument jsdoc;
-        jsdoc = QJsonDocument::fromJson(reply->readAll());
-        QJsonObject jsobj = jsdoc.object();
-        settings->setValue("accessToken", jsobj["accessToken"].toString());
-        settings->setValue("accessTokenExp", jsobj["exp"].toVariant().toLongLong());
-        settings->setValue("user", jsobj["user"].toVariant());
-
-        MainWindow* mainWindow = new MainWindow;
-        mainWindow->show();
-
-        hide();
-    } else if(statusCode == 401) {
-        QMessageBox::warning(this, "Niepoprawne dane logowania", "Niepoprawna nazwa użytkownika lub hasło");
-    } else {
-        QMessageBox::warning(this, "Błąd", "Wystąpił błąd. Pracujemy nad tym");
-    }
-    hideLoadingScreen();
-    showLoginScreen();
-    reply->deleteLater();
 }
 
 void LoginWindow::onRegisterButtonClicked() {
@@ -72,19 +44,13 @@ void LoginWindow::onLoginButtonClicked()
 {
     showLoadingScreen();
     hideLoginScreen();
+
     QString username = ui->usernameLineEdit->text();
     QString password = ui->passwordLineEdit->text();
 
-    QVariantMap userData;
-    userData.insert("username", username);
-    userData.insert("password", password);
-    QByteArray payload=QJsonDocument::fromVariant(userData).toJson();
-
-    QNetworkRequest request;
-    request.setUrl(QUrl("https://languagetutor-api-1-1589278673698.azurewebsites.net/api/auth/signin"));
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-
-    networkAccessManager->post(request,payload);
+    AuthResourceClient* client = new AuthResourceClient(username, password);
+    connect(client, &AuthResourceClient::loginDone, this, &LoginWindow::onLoginDone);
+    client->login();
 }
 
 void LoginWindow::showLoginScreen() {
@@ -101,4 +67,19 @@ void LoginWindow::showLoadingScreen() {
 
 void LoginWindow::hideLoadingScreen() {
     ui->loadingScreen->setVisible(false);
+}
+
+void LoginWindow::onLoginDone(AuthResourceClient::LoginResponseCode responseCode) {
+    if(responseCode == AuthResourceClient::LoginResponseCode::OK) {
+        MainWindow* mainWindow = new MainWindow;
+        mainWindow->show();
+
+        hide();
+    } else if(responseCode == AuthResourceClient::LoginResponseCode::INVALID_CREDENTIALS) {
+        QMessageBox::warning(this, "Niepoprawne dane logowania", "Niepoprawna nazwa użytkownika lub hasło");
+    } else {
+        QMessageBox::warning(QApplication::activeWindow(), "Błąd", "Wystąpił błąd. Pracujemy nad tym");
+    }
+    hideLoadingScreen();
+    showLoginScreen();
 }

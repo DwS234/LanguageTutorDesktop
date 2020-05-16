@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "QSettings"
 #include "QNetworkAccessManager"
+#include "client/authresourceclient.h"
 
 namespace Ui {
 class LoginWindow;
@@ -16,20 +17,18 @@ class LoginWindow : public QMainWindow
 public:
     explicit LoginWindow(QWidget *parent = nullptr);
     ~LoginWindow();
-
-private slots:
-    void onRegisterButtonClicked();
-    void onLoginButtonClicked();
-    void replyFinished(QNetworkReply *reply);
-
-private:
-    Ui::LoginWindow *ui;
-    QSettings* settings;
-    QNetworkAccessManager* networkAccessManager;
     void showLoginScreen();
     void hideLoginScreen();
     void showLoadingScreen();
     void hideLoadingScreen();
+
+private slots:
+    void onRegisterButtonClicked();
+    void onLoginButtonClicked();
+    void onLoginDone(AuthResourceClient::LoginResponseCode responseCode);
+
+private:
+    Ui::LoginWindow *ui;
 };
 
 #endif // LOGINWINDOW_H

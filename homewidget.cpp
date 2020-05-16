@@ -25,6 +25,8 @@ HomeWidget::HomeWidget(QWidget *parent) :
 HomeWidget::~HomeWidget()
 {
     delete ui;
+    delete settings;
+    delete networkAccessManager;
 }
 
 void HomeWidget::setWelcomeMessage(QString username) {
