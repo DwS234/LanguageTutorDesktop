@@ -2,8 +2,9 @@
 #include "QJsonDocument"
 #include "QNetworkReply"
 #include "QJsonObject"
+#include "QJsonArray"
 
-AuthResourceClient::AuthResourceClient(QString username, QString password) : username(username), password(password)
+AuthResourceClient::AuthResourceClient(QString username, QString password, QString email) : username(username), password(password), email(email)
 {
     connect(networkAccessManager, &QNetworkAccessManager::finished, this, &AuthResourceClient::replyFinished);
 }
@@ -15,7 +16,21 @@ void AuthResourceClient::login() {
     QByteArray payload=QJsonDocument::fromVariant(userData).toJson();
 
     QNetworkRequest request;
-    request.setUrl(QUrl("https://languagetutor-api-1-1589278673698.azurewebsites.net/api/auth/signin"));
+    request.setUrl(QUrl(BASE_URL + SIGN_IN_PATH));
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+    networkAccessManager->post(request,payload);
+}
+
+void AuthResourceClient::registerUser() {
+    QVariantMap userData;
+    userData.insert("username", username);
+    userData.insert("password", password);
+    userData.insert("email", email);
+    QByteArray payload=QJsonDocument::fromVariant(userData).toJson();
+
+    QNetworkRequest request;
+    request.setUrl(QUrl(BASE_URL + SIGN_UP_PATH));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
     networkAccessManager->post(request,payload);
@@ -24,21 +39,46 @@ void AuthResourceClient::login() {
 void AuthResourceClient::replyFinished(QNetworkReply* reply) {
     QVariant statusCodeV = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
     int statusCode = statusCodeV.toInt();
-    if(statusCode == 200) {
-        qDebug("Status code correct");
-        QJsonDocument jsdoc;
-        jsdoc = QJsonDocument::fromJson(reply->readAll());
-        QJsonObject jsobj = jsdoc.object();
-        settings->setValue("accessToken", jsobj["accessToken"].toString());
-        settings->setValue("accessTokenExp", jsobj["exp"].toVariant().toLongLong());
-        settings->setValue("user", jsobj["user"].toVariant());
+    QNetworkRequest request = reply->request();
+    QString path = request.url().path();
 
-        emit loginDone(OK);
-    } else if(statusCode == 401) {
-        emit loginDone(INVALID_CREDENTIALS);
-    } else {
-        emit loginDone(INTERNAL_SERVER_ERROR);
+    if(isThisSignInResponse(path)) {
+        if(statusCode == 200) {
+            QJsonDocument jsdoc;
+            jsdoc = QJsonDocument::fromJson(reply->readAll());
+            QJsonObject jsobj = jsdoc.object();
+            settings->setValue("accessToken", jsobj["accessToken"].toString());
+            settings->setValue("accessTokenExp", jsobj["exp"].toVariant().toLongLong());
+            settings->setValue("user", jsobj["user"].toVariant());
+
+            emit loginDone(OK);
+        } else if(statusCode == 401) {
+            emit loginDone(INVALID_CREDENTIALS);
+        } else {
+            emit loginDone(INTERNAL_SERVER_ERROR);
+        }
+    } else if(isThisSignUpResponse(path)) {
+        if(statusCode == 201) {
+            emit registerDone(OK);
+        } else if(statusCode == 400) {
+//            QJsonDocument jsdoc;
+//            jsdoc = QJsonDocument::fromJson(reply->readAll());
+//            QJsonObject jsobj = jsdoc.object();
+//            QJsonArray validationErrors = jsobj["subErrors"].toArray();
+//            QList<QString> validationErrorsList{};
+            emit registerDone(BAD_REQUEST);
+        } else if(statusCode == 500) {
+            emit registerDone(INTERNAL_SERVER_ERROR);
+        }
     }
 
     reply->deleteLater();
+}
+
+bool AuthResourceClient::isThisSignInResponse(QString path) {
+    return QString::compare(path, SIGN_IN_PATH) == 0;
+}
+
+bool AuthResourceClient::isThisSignUpResponse(QString path) {
+    return QString::compare(path, SIGN_UP_PATH) == 0;
 }

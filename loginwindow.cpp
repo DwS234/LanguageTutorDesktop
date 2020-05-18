@@ -69,16 +69,16 @@ void LoginWindow::hideLoadingScreen() {
     ui->loadingScreen->setVisible(false);
 }
 
-void LoginWindow::onLoginDone(AuthResourceClient::LoginResponseCode responseCode) {
-    if(responseCode == AuthResourceClient::LoginResponseCode::OK) {
+void LoginWindow::onLoginDone(AuthResourceClient::ResponseCode responseCode) {
+    if(responseCode == AuthResourceClient::ResponseCode::OK) {
         MainWindow* mainWindow = new MainWindow;
         mainWindow->show();
 
         hide();
-    } else if(responseCode == AuthResourceClient::LoginResponseCode::INVALID_CREDENTIALS) {
+    } else if(responseCode == AuthResourceClient::ResponseCode::INVALID_CREDENTIALS) {
         QMessageBox::warning(this, "Niepoprawne dane logowania", "Niepoprawna nazwa użytkownika lub hasło");
     } else {
-        QMessageBox::warning(QApplication::activeWindow(), "Błąd", "Wystąpił błąd. Pracujemy nad tym");
+        QMessageBox::warning(this, "Błąd", "Wystąpił błąd. Pracujemy nad tym");
     }
     hideLoadingScreen();
     showLoginScreen();

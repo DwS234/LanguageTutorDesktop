@@ -2,7 +2,7 @@
 #define REGISTERWINDOW_H
 
 #include <QMainWindow>
-#include "QNetworkAccessManager"
+#include "client/authresourceclient.h"
 
 namespace Ui {
 class RegisterWindow;
@@ -19,11 +19,16 @@ public:
 private slots:
     void onLoginButtonClicked();
     void onRegisterButtonClicked();
-    void replyFinished(QNetworkReply* reply);
+    void onRegisterDone(AuthResourceClient::ResponseCode responseCode, QList<QString> validationErrors);
 
 private:
     Ui::RegisterWindow *ui;
-    QNetworkAccessManager* networkAccessManager;
+    void showLoadingScreen(QString message="Ładowanie...");
+    void hideLoadingScreen();
+    void showRegisterScreen();
+    void hideRegisterScreen();
+    void showResultScreen();
+    void hideResultScreen();
 };
 
 #endif // REGISTERWINDOW_H
