@@ -4,6 +4,7 @@
 #include <QWidget>
 #include "QSettings"
 #include "QNetworkAccessManager"
+#include "client/repetititionsresourceclient.h"
 
 namespace Ui {
 class HomeWidget;
@@ -17,18 +18,10 @@ public:
     explicit HomeWidget(QWidget *parent = nullptr);
     ~HomeWidget();
 
-private slots:
-    void replyFinished(QNetworkReply* reply);
-
 private:
     Ui::HomeWidget *ui;
     QSettings* settings;
-    QNetworkAccessManager* networkAccessManager;
     QMap<QString, QVariant> userMap;
-
-    const QString BASE_URL = "https://languagetutor-api-1-1589278673698.azurewebsites.net";
-    const QString REPS_COUNT_PATH = "/api/repetitions/count";
-    const QString RECENT_REPETITIONS_PATH = "/api/repetitions/recentlyModfied";
 
     void showLoadingScreen();
     void hideLoadingScreen();
@@ -39,10 +32,11 @@ private:
     void setRecentRepetitionTable(QJsonArray recentRepetitions);
     void createHeaderItemsForRecentRepsTable();
     void createTableWidgetItemsForRecentRepsTable(QJsonArray recentRepetitions);
-    void fetchRepetitionsCount();
-    void fetchRecentRepetitions(int howMany);
-    bool isThisRepsCountResponse(QString path);
-    bool isThisRecentRepsResponse(QString path);
+
+private slots:
+    void onFetchRepetitionsCountDone(RepetititionsResourceClient::ResponseCode responseCode, QString repsCount);
+    void onFetchRecentRepetitionsDone(RepetititionsResourceClient::ResponseCode responseCode, QJsonArray recentRepetitions);
+
 };
 
 #endif // HOMEWIDGET_H

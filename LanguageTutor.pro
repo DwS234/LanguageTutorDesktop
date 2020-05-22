@@ -17,6 +17,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     client/authresourceclient.cpp \
+    client/repetititionsresourceclient.cpp \
     client/resourceclient.cpp \
     homewidget.cpp \
     jwthandler.cpp \
@@ -31,6 +32,7 @@ SOURCES += \
 
 HEADERS += \
     client/authresourceclient.h \
+    client/repetititionsresourceclient.h \
     client/resourceclient.h \
     homewidget.h \
     jwthandler.h \

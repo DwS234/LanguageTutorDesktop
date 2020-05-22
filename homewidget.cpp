@@ -4,85 +4,56 @@
 #include "QJsonDocument"
 #include "QJsonArray"
 #include "QJsonObject"
+#include "client/repetititionsresourceclient.h"
+#include "QMessageBox"
 
 HomeWidget::HomeWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::HomeWidget),
-    settings(new QSettings("dawid", "LanguageTutor")),
-    networkAccessManager(new QNetworkAccessManager(this))
+    settings(new QSettings("dawid", "LanguageTutor"))
 {
     ui->setupUi(this);
+
     userMap = settings->value("user").toMap();
 
     hideHomeScreen();
+    showLoadingScreen();
     setWelcomeMessage(userMap.value("username").toString());
-    fetchRepetitionsCount();
-    fetchRecentRepetitions(5);
 
-    connect(networkAccessManager, &QNetworkAccessManager::finished, this, &HomeWidget::replyFinished);
+    RepetititionsResourceClient* repsClient = new RepetititionsResourceClient{};
+    connect(repsClient, &RepetititionsResourceClient::fetchRepetitionsCountDone, this, &HomeWidget::onFetchRepetitionsCountDone);
+    connect(repsClient, &RepetititionsResourceClient::fetchRecentRepetitionsDone, this, &HomeWidget::onFetchRecentRepetitionsDone);
+    repsClient->fetchRepetitionsCount();
+    repsClient->fetchRecentRepetitions(5);
 }
 
 HomeWidget::~HomeWidget()
 {
     delete ui;
     delete settings;
-    delete networkAccessManager;
+}
+
+void HomeWidget::onFetchRepetitionsCountDone(RepetititionsResourceClient::ResponseCode responseCode, QString repsCount) {
+    if(responseCode == RepetititionsResourceClient::OK) {
+        setRepsCountInfo(repsCount);
+    } else {
+        QMessageBox::warning(QApplication::activeWindow(), "Błąd", "Wystąpił błąd. Pracujemy nad tym");
+    }
+}
+
+void HomeWidget::onFetchRecentRepetitionsDone(RepetititionsResourceClient::ResponseCode responseCode, QJsonArray recentRepetitions) {
+    if(responseCode == RepetititionsResourceClient::OK) {
+        setRecentRepetitionTable(recentRepetitions);
+    } else {
+        QMessageBox::warning(QApplication::activeWindow(), "Błąd", "Wystąpił błąd. Pracujemy nad tym");
+    }
+
+    hideLoadingScreen();
+    showHomeScreen();
 }
 
 void HomeWidget::setWelcomeMessage(QString username) {
     ui->welcomeMessageLabel->setText("Witaj, " + username + ", w LanguageTutor");
-}
-
-void HomeWidget::fetchRepetitionsCount() {
-    QNetworkRequest request;
-    request.setUrl(QUrl(BASE_URL + REPS_COUNT_PATH + "?language=english"));
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    request.setRawHeader(QByteArray("Authorization"), QByteArray(qPrintable("Bearer " + settings->value("accessToken").toString())));
-    networkAccessManager->get(request);
-}
-
-void HomeWidget::fetchRecentRepetitions(int howMany=5) {
-    showLoadingScreen();
-    QNetworkRequest request;
-    request.setUrl(QUrl(QString(BASE_URL + RECENT_REPETITIONS_PATH + "?size=%1").arg(howMany)));
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    request.setRawHeader(QByteArray("Authorization"), QByteArray(qPrintable("Bearer " + settings->value("accessToken").toString())));
-    networkAccessManager->get(request);
-}
-
-void HomeWidget::replyFinished(QNetworkReply* reply) {
-    QVariant statusCodeV = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-    int statusCode = statusCodeV.toInt();
-    if(statusCode >= 200 && statusCode <= 299) {
-        QNetworkRequest request = reply->request();
-        QNetworkAccessManager::Operation operation = reply->operation();
-        QString path = request.url().path();
-
-        if(isThisRepsCountResponse(path)) {
-            QString repetitionsCount{reply->readAll()};
-            setRepsCountInfo(repetitionsCount);
-        } else if(isThisRecentRepsResponse(path)) {
-            QJsonDocument jsdoc;
-            jsdoc = QJsonDocument::fromJson(reply->readAll());
-            QJsonArray recentRepetitions = jsdoc.array();
-
-            setRecentRepetitionTable(recentRepetitions);
-            hideLoadingScreen();
-            showHomeScreen();
-        }
-    } else {
-        //Error handling. Still figuring out how to implement this
-    }
-
-    reply->deleteLater();
-}
-
-bool HomeWidget::isThisRepsCountResponse(QString path) {
-    return QString::compare(path, REPS_COUNT_PATH) == 0;
-}
-
-bool HomeWidget::isThisRecentRepsResponse(QString path) {
-    return QString::compare(path, RECENT_REPETITIONS_PATH) == 0;
 }
 
 void HomeWidget::setRepsCountInfo(QString repsCount) {
