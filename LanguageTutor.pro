@@ -24,6 +24,8 @@ SOURCES += \
     loginwindow.cpp \
     main.cpp \
     mainwindow.cpp \
+    model/repetition.cpp \
+    model/word.cpp \
     registerwindow.cpp \
     repetitionswidget.cpp \
     searchwidget.cpp \
@@ -38,6 +40,8 @@ HEADERS += \
     jwthandler.h \
     loginwindow.h \
     mainwindow.h \
+    model/repetition.h \
+    model/word.h \
     registerwindow.h \
     repetitionswidget.h \
     searchwidget.h \

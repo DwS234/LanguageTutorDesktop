@@ -15,6 +15,10 @@ protected:
     const QString BASE_URL;
     QNetworkAccessManager* networkAccessManager;
     QSettings* settings;
+
+    QNetworkRequest generateNetworkRequest(QString path, QMap<QString, QString> queryParams=QMap<QString, QString>{}, bool isAuthRequired=true);
+private:
+    QString generateQueryString(QMap<QString, QString> queryParams);
 };
 
 #endif // RESOURCECLIENT_H

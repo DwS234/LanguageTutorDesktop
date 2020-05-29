@@ -5,6 +5,7 @@
 #include <QJsonObject>
 #include "QNetworkAccessManager"
 #include "QSettings"
+#include "client/repetititionsresourceclient.h"
 
 namespace Ui {
 class RepetitionsWidget;
@@ -18,24 +19,21 @@ public:
     explicit RepetitionsWidget(QWidget *parent = nullptr);
     ~RepetitionsWidget();
 
+
 private slots:
-    void replyFinished(QNetworkReply* reply);
     void onShowAnswerClicked();
     void onHintLetterClicked();
     void onAnswerButtonClicked();
+    void onFetchDueRepetitionsDone(RepetititionsResourceClient::ResponseCode code, QJsonObject data);
+    void onFetchDueRepetitionsCountDone(RepetititionsResourceClient::ResponseCode code, int dueRepsCount);
+    void onSendRepetitionEvaluationRequestDone(RepetititionsResourceClient::ResponseCode code);
 
 private:
     Ui::RepetitionsWidget *ui;
-    QSettings* settings;
-    QNetworkAccessManager* networkAccessManager;
     QList<QJsonObject> dueRepetitions;
     int currentRepIndex = 0;
     int currentDueRepsPage;
     int currentRepsCount = -1;
-    const QString BASE_URL = "https://languagetutor-api-1-1589278673698.azurewebsites.net";
-    const QString DUE_REPS_COUNT_PATH = "/api/repetitions/due/count";
-    const QString DUE_REPS_PATH = "/api/repetitions/due";
-    const QRegExp SET_REP_PATH_REGEXP{"/api/repetitions/\\d+/set"};
 
     void hideLoadingScreen();
     void showLoadingScreen();
@@ -44,8 +42,6 @@ private:
     void hideNoMoreRepsDueMessage();
     void showRepsFrame();
     void hideRepsFrame();
-    void fetchDueRepetitions();
-    void fetchDueRepetitionsCount();
     void showUserAnswerTextEdit();
     void hideUserAnswerTextEdit();
     void clearUserAnswerTextEdit();
@@ -58,11 +54,6 @@ private:
     void showAnswerButtons();
     void hideAnswerButtons();
     void setDueRepsCountMessage(int dueRepsLeft);
-    bool isThisRepsCountResponse(QString path);
-    bool isThisDueRepsResponse(QString path);
-    bool isThisSetRepResponse(QString path);
-    void sendDueRepsCountRequest();
-    void sendDueRepsRequest();
     void setCorrectAnswer(QString correctAnswer);
     QString getCorrectAnswer();
     void setUserAnswer(QString userAnswer);

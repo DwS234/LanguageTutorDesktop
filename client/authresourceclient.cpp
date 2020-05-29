@@ -15,9 +15,7 @@ void AuthResourceClient::login() {
     userData.insert("password", password);
     QByteArray payload=QJsonDocument::fromVariant(userData).toJson();
 
-    QNetworkRequest request;
-    request.setUrl(QUrl(BASE_URL + SIGN_IN_PATH));
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    QNetworkRequest request = generateNetworkRequest(SIGN_IN_PATH);
 
     networkAccessManager->post(request,payload);
 }
@@ -29,9 +27,7 @@ void AuthResourceClient::registerUser() {
     userData.insert("email", email);
     QByteArray payload=QJsonDocument::fromVariant(userData).toJson();
 
-    QNetworkRequest request;
-    request.setUrl(QUrl(BASE_URL + SIGN_UP_PATH));
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    QNetworkRequest request = generateNetworkRequest(SIGN_UP_PATH);
 
     networkAccessManager->post(request,payload);
 }

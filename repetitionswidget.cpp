@@ -4,21 +4,25 @@
 #include "QNetworkRequest"
 #include "QJsonDocument"
 #include "QJsonArray"
+#include "QMessageBox"
 
 RepetitionsWidget::RepetitionsWidget(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::RepetitionsWidget),
-    settings(new QSettings("dawid", "LanguageTutor")),
-    networkAccessManager(new QNetworkAccessManager(this))
+    ui(new Ui::RepetitionsWidget)
 {
     ui->setupUi(this);
-    hideRepsFrame();
     resetUiToDefault();
 
-    sendDueRepsCountRequest();
-    sendDueRepsRequest();
+    showLoadingScreen();
+    hideRepsFrame();
+    hideNoMoreRepsDueMessage();
 
-    connect(networkAccessManager, &QNetworkAccessManager::finished, this, &RepetitionsWidget::replyFinished);
+    RepetititionsResourceClient* client = new RepetititionsResourceClient;
+    connect(client, &RepetititionsResourceClient::fetchDueRepetitionsCountDone, this, &RepetitionsWidget::onFetchDueRepetitionsCountDone);
+    connect(client, &RepetititionsResourceClient::fetchDueRepetitionsDone, this, &RepetitionsWidget::onFetchDueRepetitionsDone);
+    client->fetchDueRepetitionsCount();
+    client->fetchDueRepetitions();
+
     connect(ui->repsShowAnswerBtn, &QPushButton::clicked, this, &RepetitionsWidget::onShowAnswerClicked);
     connect(ui->repsHintLetterBtn, &QPushButton::clicked, this, &RepetitionsWidget::onHintLetterClicked);
     connect(ui->answerExtremePushButton, &QPushButton::clicked, this, &RepetitionsWidget::onAnswerButtonClicked);
@@ -32,69 +36,6 @@ RepetitionsWidget::RepetitionsWidget(QWidget *parent) :
 RepetitionsWidget::~RepetitionsWidget()
 {
     delete ui;
-}
-
-void RepetitionsWidget::replyFinished(QNetworkReply* reply) {
-    QVariant statusCodeV = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-    int statusCode = statusCodeV.toInt();
-    if(statusCode >= 200 && statusCode <= 299) {
-        QNetworkRequest request = reply->request();
-        QNetworkAccessManager::Operation operation = reply->operation();
-        QString path = request.url().path();
-
-        if(isThisRepsCountResponse(path)) {
-            QString dueRepetitionsLeft{reply->readAll()};
-            int dueRepsLeft = dueRepetitionsLeft.toLong();
-            currentRepsCount = dueRepsLeft;
-            if(dueRepsLeft > 0) {
-                showRepsFrame();
-                hideNoMoreRepsDueMessage();
-                setDueRepsCountMessage(dueRepsLeft);
-            } else {
-                showNoMoreRepsDueMessage();
-                hideRepsFrame();
-            }
-            hideLoadingScreen();
-         } else if(isThisDueRepsResponse(path)) {
-            QJsonDocument jsdoc = QJsonDocument::fromJson(reply->readAll());
-
-            QJsonObject jsObj = jsdoc.object();
-            currentDueRepsPage = jsObj["pageable"].toObject()["pageNumber"].toInt();
-            QJsonArray dueReps = jsObj.value("content").toArray();
-            if(dueReps.size() > 0) {
-                QJsonObject firstRep = dueReps.at(0).toObject();
-                QJsonObject wordObject = firstRep["word"].toObject();
-                setEnglishWord(wordObject["english"].toString());
-                setCorrectAnswer(wordObject["polish"].toString());
-
-                insertDueRepsJsonArrayToDueRepsList(dueReps);
-                hideLoadingScreen();
-                showRepsFrame();
-            } else {
-                hideLoadingScreen();
-                hideRepsFrame();
-                showNoMoreRepsDueMessage();
-            }
-        } else if(isThisSetRepResponse(path)) {
-            dueRepetitions.removeFirst();
-
-            resetUiToDefault();
-
-            if(dueRepetitions.size() == 0) {
-                sendDueRepsRequest();
-            } else {
-                setDueRepsCountMessage(--currentRepsCount);
-
-                QJsonObject firstRep = dueRepetitions.at(0);
-                QJsonObject wordObject = firstRep["word"].toObject();
-                setEnglishWord(wordObject["english"].toString());
-                setCorrectAnswer(wordObject["polish"].toString());
-            }
-        }
-    } else {
-        // Show error message
-    }
-    reply->deleteLater();
 }
 
 void RepetitionsWidget::showNoMoreRepsDueMessage() {
@@ -159,18 +100,6 @@ void RepetitionsWidget::hideAnswerButtons() {
 
 void RepetitionsWidget::setDueRepsCountMessage(int dueRepsLeft) {
     ui->reps_left_count_label->setText(QString("Pozostało do powtórzenia: %1").arg(dueRepsLeft));
-}
-
-bool RepetitionsWidget::isThisRepsCountResponse(QString path) {
-    return QString::compare(path, DUE_REPS_COUNT_PATH) == 0;
-}
-
-bool RepetitionsWidget::isThisDueRepsResponse(QString path) {
-    return QString::compare(path, DUE_REPS_PATH) == 0;
-}
-
-bool RepetitionsWidget::isThisSetRepResponse(QString path) {
-    return path.contains(SET_REP_PATH_REGEXP);
 }
 
 void RepetitionsWidget::setCorrectAnswer(QString correctAnswer) {
@@ -265,25 +194,10 @@ void RepetitionsWidget::onAnswerButtonClicked() {
     QString clickedButtonText = clickedButton->text();
     QJsonObject currentRep = dueRepetitions.at(0);
     int repId = currentRep["id"].toInt();
-
-    QNetworkRequest request;
-
-    if(QString::compare(clickedButtonText, "0") == 0)
-        request.setUrl(QUrl(QString("https://languagetutor-api-1-1589278673698.azurewebsites.net/api/repetitions/%1/set?extreme=").arg(repId)));
-    else if(QString::compare(clickedButtonText, "1") == 0)
-         request.setUrl(QUrl(QString("https://languagetutor-api-1-1589278673698.azurewebsites.net/api/repetitions/%1/set?hard").arg(repId)));
-    else if(QString::compare(clickedButtonText, "2") == 0)
-        request.setUrl(QUrl(QString("https://languagetutor-api-1-1589278673698.azurewebsites.net/api/repetitions/%1/set?pretty-hard").arg(repId)));
-    else if(QString::compare(clickedButtonText, "3") == 0)
-        request.setUrl(QUrl(QString("https://languagetutor-api-1-1589278673698.azurewebsites.net/api/repetitions/%1/set?medium").arg(repId)));
-    else if(QString::compare(clickedButtonText, "4") == 0)
-        request.setUrl(QUrl(QString("https://languagetutor-api-1-1589278673698.azurewebsites.net/api/repetitions/%1/set?pretty-easy").arg(repId)));
-    else if(QString::compare(clickedButtonText, "5") == 0)
-        request.setUrl(QUrl(QString("https://languagetutor-api-1-1589278673698.azurewebsites.net/api/repetitions/%1/set?easy").arg(repId)));
-
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    request.setRawHeader(QByteArray("Authorization"), QByteArray(qPrintable("Bearer " + settings->value("accessToken").toString())));
-    networkAccessManager->get(request);
+    qDebug("%d", repId);
+    RepetititionsResourceClient* client = new RepetititionsResourceClient;
+    connect(client, &RepetititionsResourceClient::sendRepetitionEvaluationRequestDone, this, &RepetitionsWidget::onSendRepetitionEvaluationRequestDone);
+    client->sendRepetitionEvaluationRequest(clickedButtonText, repId);
 }
 
 void RepetitionsWidget::resetUiToDefault() {
@@ -297,28 +211,73 @@ void RepetitionsWidget::resetUiToDefault() {
     hideNoMoreRepsDueMessage();
 }
 
-void RepetitionsWidget::sendDueRepsCountRequest() {
-    showLoadingScreen();
-    QNetworkRequest request;
-    request.setUrl(QUrl(BASE_URL + DUE_REPS_COUNT_PATH));
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    request.setRawHeader(QByteArray("Authorization"), QByteArray(qPrintable("Bearer " + settings->value("accessToken").toString())));
-    networkAccessManager->get(request);
-}
-
-void RepetitionsWidget::sendDueRepsRequest() {
-    showLoadingScreen();
-    QNetworkRequest request;
-    request.setUrl(QUrl(BASE_URL + DUE_REPS_PATH));
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    request.setRawHeader(QByteArray("Authorization"), QByteArray(qPrintable("Bearer " + settings->value("accessToken").toString())));
-    networkAccessManager->get(request);
-}
-
 void RepetitionsWidget::hideLoadingScreen() {
     ui->loadingScreen->setVisible(false);
 }
 
 void RepetitionsWidget::showLoadingScreen() {
     ui->loadingScreen->setVisible(true);
+}
+
+void RepetitionsWidget::onFetchDueRepetitionsDone(RepetititionsResourceClient::ResponseCode code, QJsonObject data) {
+    if(code == RepetititionsResourceClient::OK) {
+        currentDueRepsPage = data["pageable"].toObject()["pageNumber"].toInt();
+        QJsonArray dueReps = data.value("content").toArray();
+        if(dueReps.size() > 0) {
+            QJsonObject firstRep = dueReps.at(0).toObject();
+            QJsonObject wordObject = firstRep["word"].toObject();
+            setEnglishWord(wordObject["english"].toString());
+            setCorrectAnswer(wordObject["polish"].toString());
+
+            insertDueRepsJsonArrayToDueRepsList(dueReps);
+            hideLoadingScreen();
+            showRepsFrame();
+        } else {
+            hideLoadingScreen();
+            hideRepsFrame();
+            showNoMoreRepsDueMessage();
+        }
+    } else {
+        QMessageBox::warning(QApplication::activeWindow(), "Błąd", "Wystąpił błąd. Pracujemy nad tym");
+    }
+}
+
+void RepetitionsWidget::onFetchDueRepetitionsCountDone(RepetititionsResourceClient::ResponseCode code, int dueRepsCount) {
+    if(code == RepetititionsResourceClient::OK) {
+        currentRepsCount = dueRepsCount;
+        if(dueRepsCount > 0) {
+            showRepsFrame();
+            hideNoMoreRepsDueMessage();
+            setDueRepsCountMessage(dueRepsCount);
+        } else {
+            showNoMoreRepsDueMessage();
+            hideRepsFrame();
+        }
+        hideLoadingScreen();
+    } else {
+        QMessageBox::warning(QApplication::activeWindow(), "Błąd", "Wystąpił błąd. Pracujemy nad tym");
+    }
+}
+
+void RepetitionsWidget::onSendRepetitionEvaluationRequestDone(RepetititionsResourceClient::ResponseCode code) {
+    qDebug("Done");
+    if(code == RepetititionsResourceClient::OK) {
+        dueRepetitions.removeFirst();
+
+        resetUiToDefault();
+
+        if(dueRepetitions.size() == 0) {
+            RepetititionsResourceClient* client = new RepetititionsResourceClient;
+            client->fetchDueRepetitions();
+        } else {
+            setDueRepsCountMessage(--currentRepsCount);
+
+            QJsonObject firstRep = dueRepetitions.at(0);
+            QJsonObject wordObject = firstRep["word"].toObject();
+            setEnglishWord(wordObject["english"].toString());
+            setCorrectAnswer(wordObject["polish"].toString());
+        }
+    } else {
+        QMessageBox::warning(QApplication::activeWindow(), "Błąd", "Wystąpił błąd. Pracujemy nad tym");
+    }
 }
