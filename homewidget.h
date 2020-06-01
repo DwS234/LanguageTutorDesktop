@@ -5,6 +5,7 @@
 #include "QSettings"
 #include "QNetworkAccessManager"
 #include "client/repetititionsresourceclient.h"
+#include "model/repetition.h"
 
 namespace Ui {
 class HomeWidget;
@@ -29,13 +30,13 @@ private:
     void hideHomeScreen();
     void setWelcomeMessage(QString username);
     void setRepsCountInfo(QString repsCount);
-    void setRecentRepetitionTable(QJsonArray recentRepetitions);
+    void setRecentRepetitionTable(QList<Repetition> recentRepetitions);
     void createHeaderItemsForRecentRepsTable();
-    void createTableWidgetItemsForRecentRepsTable(QJsonArray recentRepetitions);
+    void createTableWidgetItemsForRecentRepsTable(QList<Repetition> recentRepetitions);
 
 private slots:
     void onFetchRepetitionsCountDone(RepetititionsResourceClient::ResponseCode responseCode, QString repsCount);
-    void onFetchRecentRepetitionsDone(RepetititionsResourceClient::ResponseCode responseCode, QJsonArray recentRepetitions);
+    void onFetchRecentRepetitionsDone(RepetititionsResourceClient::ResponseCode responseCode, QList<Repetition> recentRepetitions);
 
 };
 

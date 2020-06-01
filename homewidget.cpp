@@ -41,7 +41,7 @@ void HomeWidget::onFetchRepetitionsCountDone(RepetititionsResourceClient::Respon
     }
 }
 
-void HomeWidget::onFetchRecentRepetitionsDone(RepetititionsResourceClient::ResponseCode responseCode, QJsonArray recentRepetitions) {
+void HomeWidget::onFetchRecentRepetitionsDone(RepetititionsResourceClient::ResponseCode responseCode, QList<Repetition> recentRepetitions) {
     if(responseCode == RepetititionsResourceClient::OK) {
         setRecentRepetitionTable(recentRepetitions);
     } else {
@@ -64,7 +64,7 @@ void HomeWidget::setRepsCountInfo(QString repsCount) {
         ui->repetitionsCountInfoLabel->setText("Twoja ogólna liczba nauczonych słówek to: " + repsCount + ". Gratulacje!");
 }
 
-void HomeWidget::setRecentRepetitionTable(QJsonArray recentRepetitions) {
+void HomeWidget::setRecentRepetitionTable(QList<Repetition> recentRepetitions) {
     if(recentRepetitions.size() > 0) {
 
         ui->recentRepetitionsFrame->setVisible(true);
@@ -83,28 +83,26 @@ void HomeWidget::createHeaderItemsForRecentRepsTable() {
     ui->recentRepetitionsTable->setHorizontalHeaderItem(3, new QTableWidgetItem("Liczba dotychczasowych powtórek"));
 }
 
-void HomeWidget::createTableWidgetItemsForRecentRepsTable(QJsonArray recentRepetitions) {
+void HomeWidget::createTableWidgetItemsForRecentRepsTable(QList<Repetition> recentRepetitions) {
     int row = 0;
 
-    foreach(const QJsonValue& value, recentRepetitions) {
-        QJsonObject obj = value.toObject();
-        QJsonObject word = obj["word"].toObject();
+    for(Repetition repetition : recentRepetitions) {
+        Word word = repetition.getWord();
 
-        QTableWidgetItem* englishItem = new QTableWidgetItem(word["english"].toString());
+        QTableWidgetItem* englishItem = new QTableWidgetItem(word.getForeign());
         englishItem->setTextAlignment(Qt::AlignCenter);
         ui->recentRepetitionsTable->setItem(row, 0, englishItem);
 
-        QTableWidgetItem* polishItem = new QTableWidgetItem(word["polish"].toString());
+        QTableWidgetItem* polishItem = new QTableWidgetItem(word.getMeaning());
         polishItem->setTextAlignment(Qt::AlignCenter);
         ui->recentRepetitionsTable->setItem(row, 1, polishItem);
 
-        QTableWidgetItem* nextDateItem = new QTableWidgetItem(obj["next_date"].toString());
+        QTableWidgetItem* nextDateItem = new QTableWidgetItem(repetition.getNextDate());
         nextDateItem->setTextAlignment(Qt::AlignCenter);
         ui->recentRepetitionsTable->setItem(row, 2, nextDateItem);
 
-        QTableWidgetItem* howManyTimesSeenItem = new QTableWidgetItem(QString::number(obj["howManyTimesSeen"].toInt()));
+        QTableWidgetItem* howManyTimesSeenItem = new QTableWidgetItem(QString::number(repetition.getConsecutiveCorrectAnswers()));
         howManyTimesSeenItem->setTextAlignment(Qt::AlignCenter);
-        qDebug("%d", obj["howManyTimesSeen"].toInt());
         ui->recentRepetitionsTable->setItem(row, 3, howManyTimesSeenItem);
         row++;
     }

@@ -4,6 +4,7 @@
 #include "resourceclient.h"
 #include "QJsonArray"
 #include "QJsonObject"
+#include "model/repetition.h"
 
 class RepetititionsResourceClient : public ResourceClient
 {
@@ -36,8 +37,8 @@ private slots:
 
 signals:
     void fetchRepetitionsCountDone(ResponseCode code, QString repsCount="");
-    void fetchRecentRepetitionsDone(ResponseCode code, QJsonArray recentRepetitions=QJsonArray{});
-    void fetchDueRepetitionsDone(ResponseCode code, QJsonObject data=QJsonObject{});
+    void fetchRecentRepetitionsDone(ResponseCode code, QList<Repetition> recentRepetitions=QList<Repetition>{});
+    void fetchDueRepetitionsDone(ResponseCode code, QList<Repetition> dueRepetitions=QList<Repetition>{});
     void fetchDueRepetitionsCountDone(ResponseCode code, int dueRepsCount=-1);
     void sendRepetitionEvaluationRequestDone(ResponseCode code);
 };

@@ -24,15 +24,14 @@ private slots:
     void onShowAnswerClicked();
     void onHintLetterClicked();
     void onAnswerButtonClicked();
-    void onFetchDueRepetitionsDone(RepetititionsResourceClient::ResponseCode code, QJsonObject data);
+    void onFetchDueRepetitionsDone(RepetititionsResourceClient::ResponseCode code, QList<Repetition> dueRepetitions);
     void onFetchDueRepetitionsCountDone(RepetititionsResourceClient::ResponseCode code, int dueRepsCount);
     void onSendRepetitionEvaluationRequestDone(RepetititionsResourceClient::ResponseCode code);
 
 private:
     Ui::RepetitionsWidget *ui;
-    QList<QJsonObject> dueRepetitions;
+    QList<Repetition> dueRepetitions;
     int currentRepIndex = 0;
-    int currentDueRepsPage;
     int currentRepsCount = -1;
 
     void hideLoadingScreen();
@@ -60,7 +59,7 @@ private:
     QString getUserAnswerFromTextEdit();
     QString getUserAnswer();
     void setEnglishWord(QString word);
-    void insertDueRepsJsonArrayToDueRepsList(QJsonArray dueReps);
+    void insertDueRepsToDueRepsList(QList<Repetition> dueRepetitions);
     bool isUserAnswerCorrect(QString userAnswer, QString correctAnswer);
     void setUserAnswerTextEditText(QString text);
 };

@@ -26,9 +26,11 @@ void RepetititionsResourceClient::replyFinished(QNetworkReply* reply){
         if(statusCode == 200) {
             QJsonDocument jsdoc;
             jsdoc = QJsonDocument::fromJson(reply->readAll());
-            QJsonArray recentRepetitions = jsdoc.array();
+            QJsonArray recentRepetitionsJson = jsdoc.array();
+            QList<Repetition> recentRepetitions;
+            for(QJsonValue v : recentRepetitionsJson)
+                recentRepetitions.append(Repetition{v.toObject()});
 
-            QString repetitionsCount{reply->readAll()};
             emit fetchRecentRepetitionsDone(ResponseCode::OK, recentRepetitions);
         } else {
             emit fetchRecentRepetitionsDone(ResponseCode::INTERNAL_SERVER_ERROR);
@@ -47,8 +49,12 @@ void RepetititionsResourceClient::replyFinished(QNetworkReply* reply){
             QJsonDocument jsdoc = QJsonDocument::fromJson(reply->readAll());
 
             QJsonObject data = jsdoc.object();
+            QJsonArray dueRepetitionsJson = data["content"].toArray();
+            QList<Repetition> dueRepetitions;
+            for(QJsonValue v : dueRepetitionsJson)
+                dueRepetitions.append(Repetition{v.toObject()});
 
-            emit fetchDueRepetitionsDone(OK, data);
+            emit fetchDueRepetitionsDone(OK, dueRepetitions);
         } else {
             emit fetchDueRepetitionsDone(INTERNAL_SERVER_ERROR);
         }
@@ -96,6 +102,7 @@ void RepetititionsResourceClient::fetchDueRepetitionsCount() {
 
 void RepetititionsResourceClient::sendRepetitionEvaluationRequest(QString evaluation, int repId) {
     QString path = QString("/api/repetitions/%1/set").arg(repId);
+
     QMap<QString, QString> queryParams = QMap<QString, QString>{};
     if(QString::compare(evaluation, "0") == 0)
         queryParams.insert("extreme", "");

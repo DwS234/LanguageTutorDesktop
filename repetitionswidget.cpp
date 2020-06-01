@@ -114,11 +114,8 @@ void RepetitionsWidget::setEnglishWord(QString word) {
     ui->repsEnglishWord->setText(word);
 }
 
-void RepetitionsWidget::insertDueRepsJsonArrayToDueRepsList(QJsonArray dueReps) {
-    foreach(const QJsonValue& value, dueReps) {
-        QJsonObject repetition = value.toObject();
-        dueRepetitions.push_back(repetition);
-    }
+void RepetitionsWidget::insertDueRepsToDueRepsList(QList<Repetition> dueRepetitions) {
+    this->dueRepetitions = dueRepetitions;
 }
 
 void RepetitionsWidget::setUserAnswer(QString userAnswer) {
@@ -192,9 +189,10 @@ void RepetitionsWidget::onHintLetterClicked() {
 void RepetitionsWidget::onAnswerButtonClicked() {
     QPushButton* clickedButton = (QPushButton*) QObject::sender();
     QString clickedButtonText = clickedButton->text();
-    QJsonObject currentRep = dueRepetitions.at(0);
-    int repId = currentRep["id"].toInt();
-    qDebug("%d", repId);
+    Repetition& currentRep = dueRepetitions.front();
+
+    int repId = currentRep.getId();
+
     RepetititionsResourceClient* client = new RepetititionsResourceClient;
     connect(client, &RepetititionsResourceClient::sendRepetitionEvaluationRequestDone, this, &RepetitionsWidget::onSendRepetitionEvaluationRequestDone);
     client->sendRepetitionEvaluationRequest(clickedButtonText, repId);
@@ -219,17 +217,15 @@ void RepetitionsWidget::showLoadingScreen() {
     ui->loadingScreen->setVisible(true);
 }
 
-void RepetitionsWidget::onFetchDueRepetitionsDone(RepetititionsResourceClient::ResponseCode code, QJsonObject data) {
+void RepetitionsWidget::onFetchDueRepetitionsDone(RepetititionsResourceClient::ResponseCode code, QList<Repetition> dueRepetitions) {
     if(code == RepetititionsResourceClient::OK) {
-        currentDueRepsPage = data["pageable"].toObject()["pageNumber"].toInt();
-        QJsonArray dueReps = data.value("content").toArray();
-        if(dueReps.size() > 0) {
-            QJsonObject firstRep = dueReps.at(0).toObject();
-            QJsonObject wordObject = firstRep["word"].toObject();
-            setEnglishWord(wordObject["english"].toString());
-            setCorrectAnswer(wordObject["polish"].toString());
+        if(!dueRepetitions.isEmpty()) {
+            Repetition& firstRep = dueRepetitions.front();
+            Word word = firstRep.getWord();
+            setEnglishWord(word.getForeign());
+            setCorrectAnswer(word.getMeaning());
 
-            insertDueRepsJsonArrayToDueRepsList(dueReps);
+            insertDueRepsToDueRepsList(dueRepetitions);
             hideLoadingScreen();
             showRepsFrame();
         } else {
@@ -263,19 +259,22 @@ void RepetitionsWidget::onSendRepetitionEvaluationRequestDone(RepetititionsResou
     qDebug("Done");
     if(code == RepetititionsResourceClient::OK) {
         dueRepetitions.removeFirst();
-
+        setDueRepsCountMessage(--currentRepsCount);
         resetUiToDefault();
 
         if(dueRepetitions.size() == 0) {
+            showLoadingScreen();
+            hideRepsFrame();
             RepetititionsResourceClient* client = new RepetititionsResourceClient;
+            connect(client, &RepetititionsResourceClient::fetchDueRepetitionsDone, this, &RepetitionsWidget::onFetchDueRepetitionsDone);
             client->fetchDueRepetitions();
         } else {
-            setDueRepsCountMessage(--currentRepsCount);
 
-            QJsonObject firstRep = dueRepetitions.at(0);
-            QJsonObject wordObject = firstRep["word"].toObject();
-            setEnglishWord(wordObject["english"].toString());
-            setCorrectAnswer(wordObject["polish"].toString());
+
+            Repetition& firstRep = dueRepetitions.front();
+            Word word = firstRep.getWord();
+            setEnglishWord(word.getForeign());
+            setCorrectAnswer(word.getMeaning());
         }
     } else {
         QMessageBox::warning(QApplication::activeWindow(), "Błąd", "Wystąpił błąd. Pracujemy nad tym");
