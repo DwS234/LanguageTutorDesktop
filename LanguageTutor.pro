@@ -19,6 +19,7 @@ SOURCES += \
     client/authresourceclient.cpp \
     client/repetititionsresourceclient.cpp \
     client/resourceclient.cpp \
+    client/wordresourceclient.cpp \
     homewidget.cpp \
     jwthandler.cpp \
     loginwindow.cpp \
@@ -36,6 +37,7 @@ HEADERS += \
     client/authresourceclient.h \
     client/repetititionsresourceclient.h \
     client/resourceclient.h \
+    client/wordresourceclient.h \
     homewidget.h \
     jwthandler.h \
     loginwindow.h \

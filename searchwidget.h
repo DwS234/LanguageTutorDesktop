@@ -6,6 +6,7 @@
 #include "QSettings"
 #include "QNetworkAccessManager"
 #include "QListWidgetItem"
+#include "client/wordresourceclient.h"
 
 namespace Ui {
 class SearchWidget;
@@ -21,20 +22,13 @@ public:
 
 private slots:
     void onSearchTextEdited(const QString& text);
-    void replyFinished(QNetworkReply* reply);
     void onWordHintClicked(QListWidgetItem *wordHint);
+    void onFetchWordHintsDone(WordResourceClient::ResponseCode, QList<QString>);
 
 private:
     Ui::SearchWidget *ui;
-    QSettings* settings;
-    QNetworkAccessManager* networkAccessManager;
 
-    const QString BASE_URL = "https://languagetutor-api-1-1589278673698.azurewebsites.net";
-    const QString WORDS_SEARCH_PATH = "/api/words/search";
-
-    void fetchWordHints(QString word);
-    bool isThisWordsSearchResponse(QString path);
-    void setWordHints(QJsonArray wordHints);
+    void setWordHints(QList<QString> wordHints);
     void clearWordHints();
 };
 

@@ -19,7 +19,7 @@ Repetition::Repetition(const Repetition& repetition):
     consecutiveCorrectAnswers(repetition.consecutiveCorrectAnswers),
     howManyTimesSeen(repetition.howManyTimesSeen),
     createdAt(repetition.createdAt)
-{qDebug("Konstruktor kopiujacy");};
+{};
 
 
 int Repetition::getId() {
