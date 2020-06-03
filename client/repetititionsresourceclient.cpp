@@ -14,6 +14,7 @@ void RepetititionsResourceClient::replyFinished(QNetworkReply* reply){
     int statusCode = statusCodeV.toInt();
     QNetworkRequest request = reply->request();
     QString path = request.url().path();
+    QNetworkAccessManager::Operation operation = reply->operation();
 
     if(isThisRepsCountResponse(path)) {
         if(statusCode == 200) {
@@ -63,6 +64,16 @@ void RepetititionsResourceClient::replyFinished(QNetworkReply* reply){
             emit(sendRepetitionEvaluationRequestDone(OK));
         else
             emit(sendRepetitionEvaluationRequestDone(INTERNAL_SERVER_ERROR));
+    } else if(isThisRepAddedResponse(path, operation)) {
+        if(statusCode >=200 && statusCode <= 299)
+            emit(addWordToRepsDone(OK));
+        else
+            emit(addWordToRepsDone(INTERNAL_SERVER_ERROR));
+    } else if(isThisRepDeletedResponse(path, operation)) {
+        if(statusCode >=200 && statusCode <= 299)
+            emit(deleteRepDone(OK));
+        else
+            emit(deleteRepDone(INTERNAL_SERVER_ERROR));
     }
 }
 
@@ -82,12 +93,19 @@ void RepetititionsResourceClient::fetchRecentRepetitions(int howMany) {
     networkAccessManager->get(request);
 }
 
-bool RepetititionsResourceClient::isThisRepsCountResponse(QString path) {
-    return QString::compare(path, REPS_COUNT_PATH) == 0;
+void RepetititionsResourceClient::addWordToReps(Word word) {
+    QJsonDocument doc;
+    QJsonObject obj;
+    obj.insert("word", word.toQJsonObject());
+    doc.setObject(obj);
+
+    QNetworkRequest request = generateNetworkRequest(REP_ADD_PATH);
+    networkAccessManager->post(request, doc.toJson());
 }
 
-bool RepetititionsResourceClient::isThisRecentRepsResponse(QString path) {
-    return QString::compare(path, RECENT_REPETITIONS_PATH) == 0;
+void RepetititionsResourceClient::deleteRep(int wordId) {
+    QNetworkRequest request = generateNetworkRequest(QString("/api/repetitions/word/%1").arg(wordId));
+    networkAccessManager->deleteResource(request);
 }
 
 void RepetititionsResourceClient::fetchDueRepetitions() {
@@ -132,4 +150,20 @@ bool RepetititionsResourceClient::isThisDueRepsResponse(QString path) {
 
 bool RepetititionsResourceClient::isThisSetRepResponse(QString path) {
     return path.contains(SET_REP_PATH_REGEXP);
+}
+
+bool RepetititionsResourceClient::isThisRepAddedResponse(QString path, QNetworkAccessManager::Operation operation) {
+    return QString::compare(path, REP_ADD_PATH) == 0 && operation == QNetworkAccessManager::PostOperation;
+}
+
+bool RepetititionsResourceClient::isThisRepDeletedResponse(QString path, QNetworkAccessManager::Operation operation) {
+    return path.contains(REP_DELETE_PATH_REGEXP) && operation == QNetworkAccessManager::DeleteOperation;
+}
+
+bool RepetititionsResourceClient::isThisRepsCountResponse(QString path) {
+    return QString::compare(path, REPS_COUNT_PATH) == 0;
+}
+
+bool RepetititionsResourceClient::isThisRecentRepsResponse(QString path) {
+    return QString::compare(path, RECENT_REPETITIONS_PATH) == 0;
 }

@@ -11,6 +11,24 @@ Word::Word(const QJsonObject object) :
     sentences = sentencesString.split("+");
 }
 
+Word::Word(int id, QString foreign, QString meaning, QList<QString> sentences, QString language, bool isInRepetition) :
+    id(id),
+    foreign(foreign),
+    meaning(meaning),
+    sentences(sentences),
+    language(language),
+    inRepetition(isInRepetition)
+{}
+
+Word::Word(const Word& word) :
+    id(word.id),
+    foreign(word.foreign),
+    meaning(word.meaning),
+    sentences(word.sentences),
+    language(word.language),
+    inRepetition(word.inRepetition)
+{};
+
 int Word::getId() {
     return id;
 }
@@ -53,5 +71,17 @@ void Word::setSentences(QList<QString> sentences) {
 
 void Word::setLanguage(QString language) {
     this->language = language;
+}
+
+QJsonObject Word::toQJsonObject() {
+    QJsonObject wordJsonObject;
+    wordJsonObject.insert("id", id);
+    wordJsonObject.insert("english", foreign);
+    wordJsonObject.insert("polish", meaning);
+    wordJsonObject.insert("sentences", sentences.join("+"));
+    wordJsonObject.insert("language", language);
+    wordJsonObject.insert("inRepetition", inRepetition);
+
+    return wordJsonObject;
 }
 

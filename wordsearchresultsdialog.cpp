@@ -8,20 +8,20 @@
 #include "QLabel"
 #include "QPushButton"
 #include "QSizePolicy"
+#include "QMessageBox"
 
 WordSearchResultsDialog::WordSearchResultsDialog(QString wordToSearch, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::WordSearchResultsDialog),
-    wordToSearch(wordToSearch),
-    settings(new QSettings("dawid", "LanguageTutor")),
-    networkAccessManager(new QNetworkAccessManager(this))
+    wordToSearch(wordToSearch)
 {
     ui->setupUi(this);
     hideLoadingScreen();
     setWindowTitle(wordToSearch);
-    connect(networkAccessManager, &QNetworkAccessManager::finished, this, &WordSearchResultsDialog::replyFinished);
 
-    searchWord();
+    WordResourceClient* client = new WordResourceClient;
+    connect(client, &WordResourceClient::searchWordDone, this, &WordSearchResultsDialog::onSearchWordDone);
+    client->searchWord(wordToSearch);
 }
 
 WordSearchResultsDialog::~WordSearchResultsDialog()
@@ -29,68 +29,15 @@ WordSearchResultsDialog::~WordSearchResultsDialog()
     delete ui;
 }
 
-void WordSearchResultsDialog::searchWord() {
-    QNetworkRequest request;
-    request.setUrl(QUrl(QString(BASE_URL + "/api/words/all/english/%1").arg(wordToSearch)));
-
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    request.setRawHeader(QByteArray("Authorization"), QByteArray(qPrintable("Bearer " + settings->value("accessToken").toString())));
-    networkAccessManager->get(request);
-}
-
-void WordSearchResultsDialog::replyFinished(QNetworkReply* reply) {
-    QVariant statusCodeV = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-    int statusCode = statusCodeV.toInt();
-    if(statusCode >= 200 && statusCode <= 299) {
-        QNetworkRequest request = reply->request();
-        QNetworkAccessManager::Operation operation = reply->operation();
-        QString path = request.url().path();
-        qDebug("%s", qPrintable(path));
-
-        if(isThisSearchWordResponse(path)) {
-             QJsonDocument jsdoc = QJsonDocument::fromJson(reply->readAll());
-             QJsonArray words = jsdoc.array();
-
-             setWordSearchResults(words);
-        } else if(isThisRepAddedResponse(path, operation)) {
-            lastAddDeleteRepClicked->setText("-");
-            showSearchResultsScreen();
-            hideLoadingScreen();
-        } else if(isThisRepDeletedResponse(path, operation)) {
-            lastAddDeleteRepClicked->setText("+");
-            showSearchResultsScreen();
-            hideLoadingScreen();
-        }
-    }
-    else {
-        qDebug("Some error occured");
-    }
-    reply->deleteLater();
-}
-
-bool WordSearchResultsDialog::isThisSearchWordResponse(QString path) {
-    return path.contains(SEARCH_WORD_PATH_REGEXP);
-}
-
-bool WordSearchResultsDialog::isThisRepAddedResponse(QString path, QNetworkAccessManager::Operation operation) {
-    return QString::compare(path, REP_ADD_PATH) == 0 && operation == QNetworkAccessManager::PostOperation;
-}
-
-bool WordSearchResultsDialog::isThisRepDeletedResponse(QString path, QNetworkAccessManager::Operation operation) {
-    return path.contains(REP_DELETE_PATH_REGEXP) && operation == QNetworkAccessManager::DeleteOperation;
-}
-
-void WordSearchResultsDialog::setWordSearchResults(QJsonArray words) {
+void WordSearchResultsDialog::setWordSearchResults(QList<Word> words) {
     if(words.size() > 0) {
         int t = 1;
         QVBoxLayout* wrapper = new QVBoxLayout;
         wrapper->setAlignment(Qt::AlignTop);
-        foreach(const QJsonValue& value, words) {
-            QJsonObject word = value.toObject();
-
+        for(Word word: words) {
             QHBoxLayout* meaningWrapper = new QHBoxLayout;
             meaningWrapper->setAlignment(Qt::AlignLeft);
-            QLabel* meaning = new QLabel{QString("%1. " + word["polish"].toString()).arg(t)};
+            QLabel* meaning = new QLabel{QString("%1. " + word.getMeaning()).arg(t)};
             meaning->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
             QFont meaningFont = meaning->font();
             meaningFont.setPointSize(10);
@@ -99,9 +46,9 @@ void WordSearchResultsDialog::setWordSearchResults(QJsonArray words) {
             wrapper->addLayout(meaningWrapper);
             t++;
 
-            bool inRepetition = word["inRepetition"].toBool();
+            bool inRepetition = word.isInRepetition();
             QPushButton* addDeleteRepButton = new QPushButton;
-            addDeleteRepButton->setProperty("word_id", word["id"].toInt());
+            addDeleteRepButton->setProperty("word_id", word.getId());
             addDeleteRepButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
             if(inRepetition)
                 addDeleteRepButton->setText("-");
@@ -110,7 +57,7 @@ void WordSearchResultsDialog::setWordSearchResults(QJsonArray words) {
             connect(addDeleteRepButton, &QPushButton::clicked, this, &WordSearchResultsDialog::onWordAddDeleteClicked);
             meaningWrapper->addWidget(addDeleteRepButton);
 
-            QList<QString> sentences = word["sentences"].toString().split("+");
+            QList<QString> sentences = word.getSentences();
             if(sentences.size() > 0) {
                 for(int i = 0; i < sentences.size(); i++) {
                     QLabel* sentenceLabel = new QLabel;
@@ -122,32 +69,9 @@ void WordSearchResultsDialog::setWordSearchResults(QJsonArray words) {
                     sentenceLabel->setStyleSheet("margin-left: 20px");
                 }
             }
-
-//                   item->addChild(new QTreeWidgetItem{sentences.at(i)})
-//            }
         }
         ui->wordResultsWrapper->addLayout(wrapper);
-    } else {
-
     }
-}
-
-void WordSearchResultsDialog::addWordToReps(QJsonObject word) {
-    QJsonDocument doc(word);
-
-    QNetworkRequest request;
-    request.setUrl(QUrl(BASE_URL + REP_ADD_PATH));
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    request.setRawHeader(QByteArray("Authorization"), QByteArray(qPrintable("Bearer " + settings->value("accessToken").toString())));
-    networkAccessManager->post(request, doc.toJson());
-}
-
-void WordSearchResultsDialog::deleteRep(int wordId) {
-    QNetworkRequest request;
-    request.setUrl(QUrl(QString("https://languagetutor-api-1-1589278673698.azurewebsites.net/api/repetitions/word/%1").arg(wordId)));
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    request.setRawHeader(QByteArray("Authorization"), QByteArray(qPrintable("Bearer " + settings->value("accessToken").toString())));
-    networkAccessManager->deleteResource(request);
 }
 
 void WordSearchResultsDialog::onWordAddDeleteClicked() {
@@ -155,18 +79,49 @@ void WordSearchResultsDialog::onWordAddDeleteClicked() {
     lastAddDeleteRepClicked = sender;
     int word_id = sender->property("word_id").toInt();
     if(QString::compare(sender->text(), "+") == 0) {
-        QJsonObject word{};
-        QJsonObject wordObj{};
-        wordObj.insert("id", word_id);
-        word.insert("word", wordObj);
-
         showLoadingScreen("Trwa dodawanie słowka do systemu powtórek...");
         hideSearchResultsScreen();
-        addWordToReps(word);
+
+        RepetititionsResourceClient* client = new RepetititionsResourceClient;
+        Word word{word_id};
+        connect(client, &RepetititionsResourceClient::addWordToRepsDone, this, &WordSearchResultsDialog::onAddWordToRepsDone);
+        client->addWordToReps(word);
+
     } else {
         showLoadingScreen("Trwa usuwanie słówka z systemu powtórek...");
         hideSearchResultsScreen();
-        deleteRep(word_id);
+
+        RepetititionsResourceClient* client = new RepetititionsResourceClient;
+        connect(client, &RepetititionsResourceClient::deleteRepDone, this, &WordSearchResultsDialog::onDeleteRepDone);
+        client->deleteRep(word_id);
+    }
+}
+
+void WordSearchResultsDialog::onAddWordToRepsDone(RepetititionsResourceClient::ResponseCode code) {
+    if(code == RepetititionsResourceClient::OK) {
+        lastAddDeleteRepClicked->setText("-");
+        showSearchResultsScreen();
+        hideLoadingScreen();
+    } else {
+        QMessageBox::warning(QApplication::activeWindow(), "Błąd", "Wystąpił błąd. Pracujemy nad tym");
+    }
+}
+
+void WordSearchResultsDialog::onDeleteRepDone(RepetititionsResourceClient::ResponseCode code) {
+    if(code == RepetititionsResourceClient::OK) {
+        lastAddDeleteRepClicked->setText("+");
+        showSearchResultsScreen();
+        hideLoadingScreen();
+    } else {
+        QMessageBox::warning(QApplication::activeWindow(), "Błąd", "Wystąpił błąd. Pracujemy nad tym");
+    }
+}
+
+void WordSearchResultsDialog::onSearchWordDone(WordResourceClient::ResponseCode code, QList<Word> words) {
+    if(code == WordResourceClient::OK) {
+        setWordSearchResults(words);
+    } else {
+        QMessageBox::warning(QApplication::activeWindow(), "Błąd", "Wystąpił błąd. Pracujemy nad tym");
     }
 }
 
