@@ -6,6 +6,8 @@
 #include "QSettings"
 #include "QNetworkAccessManager"
 #include "QFrame"
+#include "client/repetititionsresourceclient.h"
+#include "client/wordresourceclient.h"
 
 namespace Ui {
 class WordsWidget;
@@ -22,34 +24,23 @@ public:
 private slots:
     void onMoreWordsButtonClicked();
     void onWordAddDeleteClicked();
-    void replyFinished(QNetworkReply* reply);
+    void onAddWordToRepsDone(RepetititionsResourceClient::ResponseCode);
+    void onDeleteRepDone(RepetititionsResourceClient::ResponseCode);
+    void onFetchWordsDone(WordResourceClient::ResponseCode, QList<Word>);
 
 private:
     Ui::WordsWidget *ui;
     QPushButton* lastAddDeleteRepClicked;
-    QNetworkAccessManager* networkAccessManager;
-    QSettings* settings;
     int currentWordsPage = 0;
     int currentWordsRow = 0;
     int currentWordsCol = 0;
-
-    const QString BASE_URL = "https://languagetutor-api-1-1589278673698.azurewebsites.net";
-    const QString WORDS_PATH = "/api/words/all/s";
-    const QString REP_ADD_PATH = "/api/repetitions";
-    const QRegExp REP_DELETE_PATH_REGEXP{"/api/repetitions/word/\\d+"};
 
     void hideLoadingScreen();
     void showLoadingScreen(QString text="Ładowanie...");
     void hideWordsScreen();
     void showWordsScreen();
-    QFrame* createWordFrame(QJsonObject word);
-    void createWordFrames(QJsonArray words);
-    void addWordToReps(QJsonObject word);
-    void deleteRep(int wordId);
-    void fetchWords();
-    bool isThisWordsResponse(QString path);
-    bool isThisRepAddedResponse(QString path, QNetworkAccessManager::Operation operation);
-    bool isThisRepDeletedResponse(QString path, QNetworkAccessManager::Operation operation);
+    QFrame* createWordFrame(Word word);
+    void createWordFrames(QList<Word> words);
     void hideMoreWordsButton();
 };
 

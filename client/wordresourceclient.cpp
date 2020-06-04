@@ -36,6 +36,18 @@ void WordResourceClient::replyFinished(QNetworkReply* reply){
         } else {
             emit(searchWordDone(INTERNAL_SERVER_ERROR));
         }
+    } else if(isThisFetchWordsResponse(path)) {
+        if(statusCode == 200) {
+            QJsonDocument doc = QJsonDocument::fromJson(reply->readAll());
+            QJsonObject jsonObject = doc.object();
+            QJsonArray wordsJsonArray = jsonObject["content"].toArray();
+            QList<Word> words;
+            for(QJsonValue v : wordsJsonArray)
+                words.append(Word(v.toObject()));
+            emit(fetchWordsDone(OK, words));
+        } else {
+            emit(fetchWordsDone(INTERNAL_SERVER_ERROR));
+        }
     }
 
     reply->deleteLater();
@@ -46,6 +58,15 @@ void WordResourceClient::fetchWordHints(QString text) {
     queryParams.insert("word", text);
     QNetworkRequest request = generateNetworkRequest(WORDS_SEARCH_PATH, queryParams);
 
+    networkAccessManager->get(request);
+}
+
+void WordResourceClient::fetchWords(int page) {
+    qDebug("Page: %d", page);
+    QMap<QString, QString> queryParams;
+    queryParams.insert("page", QString::number(page));
+
+    QNetworkRequest request = generateNetworkRequest(FETCH_WORDS_PATH, queryParams);
     networkAccessManager->get(request);
 }
 
@@ -61,3 +82,9 @@ bool WordResourceClient::isThisWordsSearchResponse(QString path) {
 bool WordResourceClient::isThisSearchWordResponse(QString path) {
     return path.contains(SEARCH_WORD_PATH_REGEXP);
 }
+
+bool WordResourceClient::isThisFetchWordsResponse(QString path) {
+    return path.contains(FETCH_WORDS_PATH);
+}
+
+

@@ -5,19 +5,19 @@
 #include "QJsonObject"
 #include "QLabel"
 #include "QNetworkReply"
+#include "QMessageBox"
 
 WordsWidget::WordsWidget(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::WordsWidget),
-    networkAccessManager(new QNetworkAccessManager(this)),
-    settings(new QSettings("dawid", "LanguageTutor"))
+    ui(new Ui::WordsWidget)
 {
     ui->setupUi(this);
     showLoadingScreen();
     hideWordsScreen();
-    fetchWords();
+    WordResourceClient* client = new WordResourceClient;
+    connect(client, &WordResourceClient::fetchWordsDone, this, &WordsWidget::onFetchWordsDone);
+    client->fetchWords(currentWordsPage);
 
-    connect(networkAccessManager, &QNetworkAccessManager::finished, this, &WordsWidget::replyFinished);
     connect(ui->moreWordsPushButton, &QPushButton::clicked, this, &WordsWidget::onMoreWordsButtonClicked);
 }
 
@@ -26,54 +26,24 @@ WordsWidget::~WordsWidget()
     delete ui;
 }
 
-void WordsWidget::replyFinished(QNetworkReply* reply) {
-    QVariant statusCodeV = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-    int statusCode = statusCodeV.toInt();
-    if(statusCode >= 200 && statusCode <= 299) {
-        QNetworkRequest request = reply->request();
-        QNetworkAccessManager::Operation operation = reply->operation();
-        QString path = request.url().path();
-
-        if(isThisWordsResponse(path)) {
-            QJsonDocument jsdoc = QJsonDocument::fromJson(reply->readAll());
-
-            QJsonObject jsObj = jsdoc.object();
-            currentWordsPage = jsObj["pageable"].toObject()["pageNumber"].toInt();
-            QJsonArray words = jsObj.value("content").toArray();
-            createWordFrames(words);
-            if(words.size() == 0)
-                hideMoreWordsButton();
-            hideLoadingScreen();
-            showWordsScreen();
-        } else if(isThisRepAddedResponse(path, operation)) {
-            lastAddDeleteRepClicked->setText("-");
-            showWordsScreen();
-            hideLoadingScreen();
-        } else if(isThisRepDeletedResponse(path, operation)) {
-            lastAddDeleteRepClicked->setText("+");
-            showWordsScreen();
-            hideLoadingScreen();
-        }
-    } else {
-        // Error. Must be implemented yet.
-    }
-}
-
 void WordsWidget::onMoreWordsButtonClicked() {
     currentWordsPage++;
     showLoadingScreen();
     hideWordsScreen();
-    fetchWords();
+
+    WordResourceClient* client = new WordResourceClient;
+    connect(client, &WordResourceClient::fetchWordsDone, this, &WordsWidget::onFetchWordsDone);
+    client->fetchWords(currentWordsPage);
 }
 
 
-QFrame* WordsWidget::createWordFrame(QJsonObject word) {
+QFrame* WordsWidget::createWordFrame(Word word) {
     QFrame* wordFrame = new QFrame();
 
     QVBoxLayout* vBoxLayout = new QVBoxLayout;
     vBoxLayout->setMargin(10);
 
-    QLabel* englishLabel = new QLabel(word["english"].toString());
+    QLabel* englishLabel = new QLabel(word.getForeign());
     englishLabel->setMaximumWidth(300);
     englishLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
     englishLabel->setWordWrap(true);
@@ -83,7 +53,7 @@ QFrame* WordsWidget::createWordFrame(QJsonObject word) {
 
     vBoxLayout->addWidget(englishLabel);
     englishLabel->setWordWrap(true);
-    QLabel* polishLabel = new QLabel(word["polish"].toString());
+    QLabel* polishLabel = new QLabel(word.getMeaning());
     polishLabel->setMaximumWidth(300);
     polishLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
     polishLabel->setWordWrap(true);
@@ -94,8 +64,8 @@ QFrame* WordsWidget::createWordFrame(QJsonObject word) {
     vBoxLayout->addWidget(polishLabel);
 
     QPushButton* pushButton = new QPushButton();
-    pushButton->setProperty("word_id", word["id"].toInt());
-    if(word["inRepetition"].toBool()) {
+    pushButton->setProperty("word_id", word.getId());
+    if(word.isInRepetition()) {
         pushButton->setText("-");
     } else {
         pushButton->setText("+");
@@ -118,51 +88,32 @@ void WordsWidget::onWordAddDeleteClicked() {
     int word_id = sender->property("word_id").toInt();
     lastAddDeleteRepClicked = sender;
     if(QString::compare(sender->text(), "+") == 0) {
-        QJsonObject word{};
-        QJsonObject wordObj{};
-        wordObj.insert("id", word_id);
-        word.insert("word", wordObj);
 
         showLoadingScreen("Trwa dodawanie słowka do systemu powtórek...");
         hideWordsScreen();
-        addWordToReps(word);
+
+        Word word{word_id};
+        RepetititionsResourceClient* client = new RepetititionsResourceClient;
+        connect(client, &RepetititionsResourceClient::addWordToRepsDone, this, &WordsWidget::onAddWordToRepsDone);
+        client->addWordToReps(word);
     } else {
         showLoadingScreen("Trwa usuwanie słówka z systemu powtórek...");
         hideWordsScreen();
-        deleteRep(word_id);
+
+        RepetititionsResourceClient* client = new RepetititionsResourceClient;
+        connect(client, &RepetititionsResourceClient::deleteRepDone, this, &WordsWidget::onDeleteRepDone);
+        client->deleteRep(word_id);
     }
 }
 
-void WordsWidget::fetchWords() {
-    QNetworkRequest request;
-    request.setUrl(QUrl(QString("https://languagetutor-api-1-1589278673698.azurewebsites.net/api/words/all/s?page=%1").arg(currentWordsPage)));
-
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    request.setRawHeader(QByteArray("Authorization"), QByteArray(qPrintable("Bearer " + settings->value("accessToken").toString())));
-    networkAccessManager->get(request);
-}
-
-bool WordsWidget::isThisWordsResponse(QString path) {
-    return QString::compare(path, WORDS_PATH) == 0;
-}
-
-bool WordsWidget::isThisRepAddedResponse(QString path, QNetworkAccessManager::Operation operation) {
-    return QString::compare(path, REP_ADD_PATH) == 0 && operation == QNetworkAccessManager::PostOperation;
-}
-
-bool WordsWidget::isThisRepDeletedResponse(QString path, QNetworkAccessManager::Operation operation) {
-    return path.contains(REP_DELETE_PATH_REGEXP) && operation == QNetworkAccessManager::DeleteOperation;
-}
-
-void WordsWidget::createWordFrames(QJsonArray words) {
+void WordsWidget::createWordFrames(QList<Word> words) {
     if(words.size() > 0) {
-        foreach(const QJsonValue& value, words) {
+        for(Word word : words) {
             if(currentWordsCol == 2)
             {
                 currentWordsCol = 0;
                 currentWordsRow++;
             }
-            QJsonObject word = value.toObject();
 
             ui->wordsGrid->addWidget(createWordFrame(word), currentWordsRow, currentWordsCol);
             currentWordsCol++;
@@ -172,24 +123,6 @@ void WordsWidget::createWordFrames(QJsonArray words) {
 
 void WordsWidget::hideMoreWordsButton() {
     ui->moreWordsPushButton->setVisible(false);
-}
-
-void WordsWidget::addWordToReps(QJsonObject word) {
-    QJsonDocument doc(word);
-
-    QNetworkRequest request;
-    request.setUrl(QUrl(BASE_URL + REP_ADD_PATH));
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    request.setRawHeader(QByteArray("Authorization"), QByteArray(qPrintable("Bearer " + settings->value("accessToken").toString())));
-    networkAccessManager->post(request, doc.toJson());
-}
-
-void WordsWidget::deleteRep(int wordId) {
-    QNetworkRequest request;
-    request.setUrl(QUrl(QString("https://languagetutor-api-1-1589278673698.azurewebsites.net/api/repetitions/word/%1").arg(wordId)));
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    request.setRawHeader(QByteArray("Authorization"), QByteArray(qPrintable("Bearer " + settings->value("accessToken").toString())));
-    networkAccessManager->deleteResource(request);
 }
 
 void WordsWidget::showLoadingScreen(QString text) {
@@ -207,6 +140,38 @@ void WordsWidget::showWordsScreen() {
 
 void WordsWidget::hideWordsScreen() {
     ui->words_widget->setVisible(false);
+}
+
+void WordsWidget::onAddWordToRepsDone(RepetititionsResourceClient::ResponseCode code) {
+    if(code == RepetititionsResourceClient::OK) {
+        lastAddDeleteRepClicked->setText("-");
+        showWordsScreen();
+        hideLoadingScreen();
+    } else {
+        QMessageBox::warning(QApplication::activeWindow(), "Błąd", "Wystąpił błąd. Pracujemy nad tym");
+    }
+}
+
+void WordsWidget::onDeleteRepDone(RepetititionsResourceClient::ResponseCode code) {
+    if(code == RepetititionsResourceClient::OK) {
+        lastAddDeleteRepClicked->setText("+");
+        showWordsScreen();
+        hideLoadingScreen();
+    } else {
+        QMessageBox::warning(QApplication::activeWindow(), "Błąd", "Wystąpił błąd. Pracujemy nad tym");
+    }
+}
+
+void WordsWidget::onFetchWordsDone(WordResourceClient::ResponseCode code, QList<Word> words) {
+    if(code == WordResourceClient::OK) {
+        createWordFrames(words);
+        if(words.size() == 0)
+            hideMoreWordsButton();
+        hideLoadingScreen();
+        showWordsScreen();
+    } else {
+       QMessageBox::warning(QApplication::activeWindow(), "Błąd", "Wystąpił błąd. Pracujemy nad tym");
+    }
 }
 
 
