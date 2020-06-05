@@ -9,7 +9,8 @@
 RepetitionsWidget::RepetitionsWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::RepetitionsWidget),
-    mainWindow((MainWindow*) QApplication::activeWindow())
+    mainWindow((MainWindow*) QApplication::activeWindow()),
+    repsClient(new RepetititionsResourceClient)
 {
     ui->setupUi(this);
     resetUiToDefault();
@@ -18,11 +19,11 @@ RepetitionsWidget::RepetitionsWidget(QWidget *parent) :
     hideRepsFrame();
     hideNoMoreRepsDueMessage();
 
-    RepetititionsResourceClient* client = new RepetititionsResourceClient;
-    connect(client, &RepetititionsResourceClient::fetchDueRepetitionsCountDone, this, &RepetitionsWidget::onFetchDueRepetitionsCountDone);
-    connect(client, &RepetititionsResourceClient::fetchDueRepetitionsDone, this, &RepetitionsWidget::onFetchDueRepetitionsDone);
-    client->fetchDueRepetitionsCount();
-    client->fetchDueRepetitions();
+    connect(repsClient, &RepetititionsResourceClient::fetchDueRepetitionsCountDone, this, &RepetitionsWidget::onFetchDueRepetitionsCountDone);
+    connect(repsClient, &RepetititionsResourceClient::fetchDueRepetitionsDone, this, &RepetitionsWidget::onFetchDueRepetitionsDone);
+    connect(repsClient, &RepetititionsResourceClient::sendRepetitionEvaluationRequestDone, this, &RepetitionsWidget::onSendRepetitionEvaluationRequestDone);
+    repsClient->fetchDueRepetitionsCount();
+    repsClient->fetchDueRepetitions();
 
     mainWindow->disableSideMenu();
 
@@ -40,6 +41,7 @@ RepetitionsWidget::~RepetitionsWidget()
 {
     delete ui;
     delete mainWindow;
+    delete repsClient;
 }
 
 void RepetitionsWidget::showNoMoreRepsDueMessage() {
@@ -196,10 +198,7 @@ void RepetitionsWidget::onAnswerButtonClicked() {
     Repetition& currentRep = dueRepetitions.front();
 
     int repId = currentRep.getId();
-
-    RepetititionsResourceClient* client = new RepetititionsResourceClient;
-    connect(client, &RepetititionsResourceClient::sendRepetitionEvaluationRequestDone, this, &RepetitionsWidget::onSendRepetitionEvaluationRequestDone);
-    client->sendRepetitionEvaluationRequest(clickedButtonText, repId);
+    repsClient->sendRepetitionEvaluationRequest(clickedButtonText, repId);
 
     mainWindow->disableSideMenu();
 }
@@ -275,9 +274,8 @@ void RepetitionsWidget::onSendRepetitionEvaluationRequestDone(RepetititionsResou
         if(dueRepetitions.size() == 0) {
             showLoadingScreen();
             hideRepsFrame();
-            RepetititionsResourceClient* client = new RepetititionsResourceClient;
-            connect(client, &RepetititionsResourceClient::fetchDueRepetitionsDone, this, &RepetitionsWidget::onFetchDueRepetitionsDone);
-            client->fetchDueRepetitions();
+
+            repsClient->fetchDueRepetitions();
 
             mainWindow->disableSideMenu();
         } else {

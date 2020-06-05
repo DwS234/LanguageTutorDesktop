@@ -29,6 +29,7 @@ private slots:
 private:
     Ui::SearchWidget *ui;
     MainWindow* mainWindow;
+    WordResourceClient* wordsClient;
 
     void setWordHints(QList<QString> wordHints);
     void clearWordHints();

@@ -23,6 +23,7 @@ public:
 private:
     Ui::HomeWidget *ui;
     MainWindow* mainWindow;
+    RepetititionsResourceClient* repsClient;
     QSettings* settings;
     QMap<QString, QVariant> userMap;
 

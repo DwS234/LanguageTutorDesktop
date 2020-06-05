@@ -13,20 +13,25 @@
 WordSearchResultsDialog::WordSearchResultsDialog(QString wordToSearch, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::WordSearchResultsDialog),
-    wordToSearch(wordToSearch)
+    wordToSearch(wordToSearch),
+    wordsClient(new WordResourceClient),
+    repsClient(new RepetititionsResourceClient)
 {
     ui->setupUi(this);
     hideLoadingScreen();
     setWindowTitle(wordToSearch);
 
-    WordResourceClient* client = new WordResourceClient;
-    connect(client, &WordResourceClient::searchWordDone, this, &WordSearchResultsDialog::onSearchWordDone);
-    client->searchWord(wordToSearch);
+    connect(wordsClient, &WordResourceClient::searchWordDone, this, &WordSearchResultsDialog::onSearchWordDone);
+    connect(repsClient, &RepetititionsResourceClient::addWordToRepsDone, this, &WordSearchResultsDialog::onAddWordToRepsDone);
+    connect(repsClient, &RepetititionsResourceClient::deleteRepDone, this, &WordSearchResultsDialog::onDeleteRepDone);
+    wordsClient->searchWord(wordToSearch);
 }
 
 WordSearchResultsDialog::~WordSearchResultsDialog()
 {
     delete ui;
+    delete wordsClient;
+    delete repsClient;
 }
 
 void WordSearchResultsDialog::setWordSearchResults(QList<Word> words) {
@@ -83,18 +88,14 @@ void WordSearchResultsDialog::onWordAddDeleteClicked() {
         showLoadingScreen("Trwa dodawanie słowka do systemu powtórek...");
         hideSearchResultsScreen();
 
-        RepetititionsResourceClient* client = new RepetititionsResourceClient;
         Word word{word_id};
-        connect(client, &RepetititionsResourceClient::addWordToRepsDone, this, &WordSearchResultsDialog::onAddWordToRepsDone);
-        client->addWordToReps(word);
+        repsClient->addWordToReps(word);
 
     } else {
         showLoadingScreen("Trwa usuwanie słówka z systemu powtórek...");
         hideSearchResultsScreen();
 
-        RepetititionsResourceClient* client = new RepetititionsResourceClient;
-        connect(client, &RepetititionsResourceClient::deleteRepDone, this, &WordSearchResultsDialog::onDeleteRepDone);
-        client->deleteRep(word_id);
+        repsClient->deleteRep(word_id);
     }
 }
 

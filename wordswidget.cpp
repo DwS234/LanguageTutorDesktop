@@ -10,24 +10,29 @@
 WordsWidget::WordsWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::WordsWidget),
-    mainWindow((MainWindow*) QApplication::activeWindow())
+    mainWindow((MainWindow*) QApplication::activeWindow()),
+    wordsClient(new WordResourceClient),
+    repsClient(new RepetititionsResourceClient)
 {
     ui->setupUi(this);
     showLoadingScreen();
     hideWordsScreen();
 
-    mainWindow->disableSideMenu();
-    WordResourceClient* client = new WordResourceClient;
-    connect(client, &WordResourceClient::fetchWordsDone, this, &WordsWidget::onFetchWordsDone);
-    client->fetchWords(currentWordsPage);
-
+    connect(wordsClient, &WordResourceClient::fetchWordsDone, this, &WordsWidget::onFetchWordsDone);
+    connect(repsClient, &RepetititionsResourceClient::addWordToRepsDone, this, &WordsWidget::onAddWordToRepsDone);
+    connect(repsClient, &RepetititionsResourceClient::deleteRepDone, this, &WordsWidget::onDeleteRepDone);
     connect(ui->moreWordsPushButton, &QPushButton::clicked, this, &WordsWidget::onMoreWordsButtonClicked);
+
+    mainWindow->disableSideMenu();
+    wordsClient->fetchWords(currentWordsPage);
 }
 
 WordsWidget::~WordsWidget()
 {
     delete ui;
     delete mainWindow;
+    delete wordsClient;
+    delete repsClient;
 }
 
 void WordsWidget::onMoreWordsButtonClicked() {
@@ -35,9 +40,7 @@ void WordsWidget::onMoreWordsButtonClicked() {
     showLoadingScreen();
     hideWordsScreen();
     mainWindow->disableSideMenu();
-    WordResourceClient* client = new WordResourceClient;
-    connect(client, &WordResourceClient::fetchWordsDone, this, &WordsWidget::onFetchWordsDone);
-    client->fetchWords(currentWordsPage);
+    wordsClient->fetchWords(currentWordsPage);
 }
 
 
@@ -95,21 +98,16 @@ void WordsWidget::onWordAddDeleteClicked() {
     mainWindow->disableSideMenu();
 
     if(QString::compare(sender->text(), "+") == 0) {
-
         showLoadingScreen("Trwa dodawanie słowka do systemu powtórek...");
         hideWordsScreen();
 
         Word word{word_id};
-        RepetititionsResourceClient* client = new RepetititionsResourceClient;
-        connect(client, &RepetititionsResourceClient::addWordToRepsDone, this, &WordsWidget::onAddWordToRepsDone);
-        client->addWordToReps(word);
+        repsClient->addWordToReps(word);
     } else {
         showLoadingScreen("Trwa usuwanie słówka z systemu powtórek...");
         hideWordsScreen();
 
-        RepetititionsResourceClient* client = new RepetititionsResourceClient;
-        connect(client, &RepetititionsResourceClient::deleteRepDone, this, &WordsWidget::onDeleteRepDone);
-        client->deleteRep(word_id);
+        repsClient->deleteRep(word_id);
     }
 }
 

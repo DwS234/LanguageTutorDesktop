@@ -33,6 +33,7 @@ private:
     Ui::RepetitionsWidget *ui;
     QList<Repetition> dueRepetitions;
     MainWindow* mainWindow;
+    RepetititionsResourceClient* repsClient;
     int currentRepIndex = 0;
     int currentRepsCount = -1;
 

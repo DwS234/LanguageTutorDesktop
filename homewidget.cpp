@@ -11,6 +11,7 @@ HomeWidget::HomeWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::HomeWidget),
     mainWindow((MainWindow*) QApplication::activeWindow()),
+    repsClient(new RepetititionsResourceClient),
     settings(new QSettings("dawid", "LanguageTutor"))
 {
     ui->setupUi(this);
@@ -21,7 +22,6 @@ HomeWidget::HomeWidget(QWidget *parent) :
     showLoadingScreen();
     setWelcomeMessage(userMap.value("username").toString());
 
-    RepetititionsResourceClient* repsClient = new RepetititionsResourceClient{};
     connect(repsClient, &RepetititionsResourceClient::fetchRepetitionsCountDone, this, &HomeWidget::onFetchRepetitionsCountDone);
     connect(repsClient, &RepetititionsResourceClient::fetchRecentRepetitionsDone, this, &HomeWidget::onFetchRecentRepetitionsDone);
     repsClient->fetchRepetitionsCount();
@@ -35,6 +35,7 @@ HomeWidget::~HomeWidget()
     delete ui;
     delete settings;
     delete mainWindow;
+    delete repsClient;
 }
 
 void HomeWidget::onFetchRepetitionsCountDone(RepetititionsResourceClient::ResponseCode responseCode, QString repsCount) {

@@ -9,25 +9,26 @@
 SearchWidget::SearchWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::SearchWidget),
-    mainWindow((MainWindow*) QApplication::activeWindow())
+    mainWindow((MainWindow*) QApplication::activeWindow()),
+    wordsClient(new WordResourceClient)
 {
     ui->setupUi(this);
     connect(ui->searchLineEdit, &QLineEdit::textEdited, this, &SearchWidget::onSearchTextEdited);
     connect(ui->searchHintListWidget, &QListWidget::itemClicked, this, &SearchWidget::onWordHintClicked);
+    connect(wordsClient, &WordResourceClient::fetchWordHintsDone, this, &SearchWidget::onFetchWordHintsDone);
 }
 
 SearchWidget::~SearchWidget()
 {
     delete ui;
     delete mainWindow;
+    delete wordsClient;
 }
 
 void SearchWidget::onSearchTextEdited(const QString& text) {
     if(text.size() > 2) {
         mainWindow->disableSideMenu();
-        WordResourceClient* client = new WordResourceClient;
-        connect(client, &WordResourceClient::fetchWordHintsDone, this, &SearchWidget::onFetchWordHintsDone);
-        client->fetchWordHints(text);
+        wordsClient->fetchWordHints(text);
     } else {
         clearWordHints();
     }

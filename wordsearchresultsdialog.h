@@ -29,6 +29,8 @@ private:
     Ui::WordSearchResultsDialog *ui;
     QString wordToSearch;
     QPushButton* lastAddDeleteRepClicked;
+    WordResourceClient* wordsClient;
+    RepetititionsResourceClient* repsClient;
 
     void setWordSearchResults(QList<Word> words);
     void hideLoadingScreen();

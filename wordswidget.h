@@ -33,6 +33,8 @@ private:
     Ui::WordsWidget *ui;
     MainWindow* mainWindow;
     QPushButton* lastAddDeleteRepClicked;
+    WordResourceClient* wordsClient;
+    RepetititionsResourceClient* repsClient;
     int currentWordsPage = 0;
     int currentWordsRow = 0;
     int currentWordsCol = 0;
