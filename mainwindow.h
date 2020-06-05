@@ -19,6 +19,9 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    void disableSideMenu();
+    void enableSideMenu();
+
 private slots:
     void replyFinished(QNetworkReply* reply);
     void onLogoutButtonClicked();

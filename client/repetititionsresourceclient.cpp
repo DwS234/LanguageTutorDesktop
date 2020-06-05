@@ -75,6 +75,8 @@ void RepetititionsResourceClient::replyFinished(QNetworkReply* reply){
         else
             emit(deleteRepDone(INTERNAL_SERVER_ERROR));
     }
+
+    reply->deleteLater();
 }
 
 void RepetititionsResourceClient::fetchRepetitionsCount() {

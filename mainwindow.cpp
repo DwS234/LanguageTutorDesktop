@@ -134,3 +134,13 @@ void MainWindow::createSideMenu() {
     searchItem->setFont(searchItemFont);
     searchItem->setTextAlignment(Qt::AlignCenter);
 }
+
+void MainWindow::disableSideMenu() {
+    ui->sideMenu->setEnabled(false);
+    ui->verticalWidget->setCursor(Qt::ForbiddenCursor);
+}
+
+void MainWindow::enableSideMenu() {
+    ui->sideMenu->setEnabled(true);
+    ui->verticalWidget->setCursor(Qt::ArrowCursor);
+}

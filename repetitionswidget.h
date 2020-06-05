@@ -6,6 +6,7 @@
 #include "QNetworkAccessManager"
 #include "QSettings"
 #include "client/repetititionsresourceclient.h"
+#include "mainwindow.h"
 
 namespace Ui {
 class RepetitionsWidget;
@@ -31,6 +32,7 @@ private slots:
 private:
     Ui::RepetitionsWidget *ui;
     QList<Repetition> dueRepetitions;
+    MainWindow* mainWindow;
     int currentRepIndex = 0;
     int currentRepsCount = -1;
 

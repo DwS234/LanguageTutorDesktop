@@ -6,6 +6,7 @@
 #include "QNetworkAccessManager"
 #include "client/repetititionsresourceclient.h"
 #include "model/repetition.h"
+#include "mainwindow.h"
 
 namespace Ui {
 class HomeWidget;
@@ -21,6 +22,7 @@ public:
 
 private:
     Ui::HomeWidget *ui;
+    MainWindow* mainWindow;
     QSettings* settings;
     QMap<QString, QVariant> userMap;
 

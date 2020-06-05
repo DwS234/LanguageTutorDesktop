@@ -8,7 +8,8 @@
 
 RepetitionsWidget::RepetitionsWidget(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::RepetitionsWidget)
+    ui(new Ui::RepetitionsWidget),
+    mainWindow((MainWindow*) QApplication::activeWindow())
 {
     ui->setupUi(this);
     resetUiToDefault();
@@ -23,6 +24,8 @@ RepetitionsWidget::RepetitionsWidget(QWidget *parent) :
     client->fetchDueRepetitionsCount();
     client->fetchDueRepetitions();
 
+    mainWindow->disableSideMenu();
+
     connect(ui->repsShowAnswerBtn, &QPushButton::clicked, this, &RepetitionsWidget::onShowAnswerClicked);
     connect(ui->repsHintLetterBtn, &QPushButton::clicked, this, &RepetitionsWidget::onHintLetterClicked);
     connect(ui->answerExtremePushButton, &QPushButton::clicked, this, &RepetitionsWidget::onAnswerButtonClicked);
@@ -36,6 +39,7 @@ RepetitionsWidget::RepetitionsWidget(QWidget *parent) :
 RepetitionsWidget::~RepetitionsWidget()
 {
     delete ui;
+    delete mainWindow;
 }
 
 void RepetitionsWidget::showNoMoreRepsDueMessage() {
@@ -196,6 +200,8 @@ void RepetitionsWidget::onAnswerButtonClicked() {
     RepetititionsResourceClient* client = new RepetititionsResourceClient;
     connect(client, &RepetititionsResourceClient::sendRepetitionEvaluationRequestDone, this, &RepetitionsWidget::onSendRepetitionEvaluationRequestDone);
     client->sendRepetitionEvaluationRequest(clickedButtonText, repId);
+
+    mainWindow->disableSideMenu();
 }
 
 void RepetitionsWidget::resetUiToDefault() {
@@ -236,6 +242,8 @@ void RepetitionsWidget::onFetchDueRepetitionsDone(RepetititionsResourceClient::R
     } else {
         QMessageBox::warning(QApplication::activeWindow(), "Błąd", "Wystąpił błąd. Pracujemy nad tym");
     }
+
+    mainWindow->enableSideMenu();
 }
 
 void RepetitionsWidget::onFetchDueRepetitionsCountDone(RepetititionsResourceClient::ResponseCode code, int dueRepsCount) {
@@ -253,6 +261,8 @@ void RepetitionsWidget::onFetchDueRepetitionsCountDone(RepetititionsResourceClie
     } else {
         QMessageBox::warning(QApplication::activeWindow(), "Błąd", "Wystąpił błąd. Pracujemy nad tym");
     }
+
+    mainWindow->enableSideMenu();
 }
 
 void RepetitionsWidget::onSendRepetitionEvaluationRequestDone(RepetititionsResourceClient::ResponseCode code) {
@@ -268,9 +278,9 @@ void RepetitionsWidget::onSendRepetitionEvaluationRequestDone(RepetititionsResou
             RepetititionsResourceClient* client = new RepetititionsResourceClient;
             connect(client, &RepetititionsResourceClient::fetchDueRepetitionsDone, this, &RepetitionsWidget::onFetchDueRepetitionsDone);
             client->fetchDueRepetitions();
+
+            mainWindow->disableSideMenu();
         } else {
-
-
             Repetition& firstRep = dueRepetitions.front();
             Word word = firstRep.getWord();
             setEnglishWord(word.getForeign());
@@ -279,4 +289,6 @@ void RepetitionsWidget::onSendRepetitionEvaluationRequestDone(RepetititionsResou
     } else {
         QMessageBox::warning(QApplication::activeWindow(), "Błąd", "Wystąpił błąd. Pracujemy nad tym");
     }
+
+    mainWindow->enableSideMenu();
 }

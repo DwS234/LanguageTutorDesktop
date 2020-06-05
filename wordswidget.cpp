@@ -9,11 +9,14 @@
 
 WordsWidget::WordsWidget(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::WordsWidget)
+    ui(new Ui::WordsWidget),
+    mainWindow((MainWindow*) QApplication::activeWindow())
 {
     ui->setupUi(this);
     showLoadingScreen();
     hideWordsScreen();
+
+    mainWindow->disableSideMenu();
     WordResourceClient* client = new WordResourceClient;
     connect(client, &WordResourceClient::fetchWordsDone, this, &WordsWidget::onFetchWordsDone);
     client->fetchWords(currentWordsPage);
@@ -24,13 +27,14 @@ WordsWidget::WordsWidget(QWidget *parent) :
 WordsWidget::~WordsWidget()
 {
     delete ui;
+    delete mainWindow;
 }
 
 void WordsWidget::onMoreWordsButtonClicked() {
     currentWordsPage++;
     showLoadingScreen();
     hideWordsScreen();
-
+    mainWindow->disableSideMenu();
     WordResourceClient* client = new WordResourceClient;
     connect(client, &WordResourceClient::fetchWordsDone, this, &WordsWidget::onFetchWordsDone);
     client->fetchWords(currentWordsPage);
@@ -87,6 +91,9 @@ void WordsWidget::onWordAddDeleteClicked() {
     QPushButton* sender = (QPushButton*) this->sender();
     int word_id = sender->property("word_id").toInt();
     lastAddDeleteRepClicked = sender;
+
+    mainWindow->disableSideMenu();
+
     if(QString::compare(sender->text(), "+") == 0) {
 
         showLoadingScreen("Trwa dodawanie słowka do systemu powtórek...");
@@ -150,6 +157,8 @@ void WordsWidget::onAddWordToRepsDone(RepetititionsResourceClient::ResponseCode 
     } else {
         QMessageBox::warning(QApplication::activeWindow(), "Błąd", "Wystąpił błąd. Pracujemy nad tym");
     }
+
+    mainWindow->enableSideMenu();
 }
 
 void WordsWidget::onDeleteRepDone(RepetititionsResourceClient::ResponseCode code) {
@@ -160,6 +169,8 @@ void WordsWidget::onDeleteRepDone(RepetititionsResourceClient::ResponseCode code
     } else {
         QMessageBox::warning(QApplication::activeWindow(), "Błąd", "Wystąpił błąd. Pracujemy nad tym");
     }
+
+    mainWindow->enableSideMenu();
 }
 
 void WordsWidget::onFetchWordsDone(WordResourceClient::ResponseCode code, QList<Word> words) {
@@ -172,6 +183,8 @@ void WordsWidget::onFetchWordsDone(WordResourceClient::ResponseCode code, QList<
     } else {
        QMessageBox::warning(QApplication::activeWindow(), "Błąd", "Wystąpił błąd. Pracujemy nad tym");
     }
+
+    mainWindow->enableSideMenu();
 }
 
 

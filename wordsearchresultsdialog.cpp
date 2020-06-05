@@ -77,6 +77,7 @@ void WordSearchResultsDialog::setWordSearchResults(QList<Word> words) {
 void WordSearchResultsDialog::onWordAddDeleteClicked() {
     QPushButton* sender = (QPushButton*) this->sender();
     lastAddDeleteRepClicked = sender;
+
     int word_id = sender->property("word_id").toInt();
     if(QString::compare(sender->text(), "+") == 0) {
         showLoadingScreen("Trwa dodawanie słowka do systemu powtórek...");

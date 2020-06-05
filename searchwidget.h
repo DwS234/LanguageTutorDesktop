@@ -7,6 +7,7 @@
 #include "QNetworkAccessManager"
 #include "QListWidgetItem"
 #include "client/wordresourceclient.h"
+#include "mainwindow.h"
 
 namespace Ui {
 class SearchWidget;
@@ -27,6 +28,7 @@ private slots:
 
 private:
     Ui::SearchWidget *ui;
+    MainWindow* mainWindow;
 
     void setWordHints(QList<QString> wordHints);
     void clearWordHints();

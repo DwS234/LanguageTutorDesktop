@@ -8,6 +8,7 @@
 #include "QFrame"
 #include "client/repetititionsresourceclient.h"
 #include "client/wordresourceclient.h"
+#include "mainwindow.h"
 
 namespace Ui {
 class WordsWidget;
@@ -30,6 +31,7 @@ private slots:
 
 private:
     Ui::WordsWidget *ui;
+    MainWindow* mainWindow;
     QPushButton* lastAddDeleteRepClicked;
     int currentWordsPage = 0;
     int currentWordsRow = 0;

@@ -8,7 +8,8 @@
 
 SearchWidget::SearchWidget(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::SearchWidget)
+    ui(new Ui::SearchWidget),
+    mainWindow((MainWindow*) QApplication::activeWindow())
 {
     ui->setupUi(this);
     connect(ui->searchLineEdit, &QLineEdit::textEdited, this, &SearchWidget::onSearchTextEdited);
@@ -18,10 +19,12 @@ SearchWidget::SearchWidget(QWidget *parent) :
 SearchWidget::~SearchWidget()
 {
     delete ui;
+    delete mainWindow;
 }
 
 void SearchWidget::onSearchTextEdited(const QString& text) {
     if(text.size() > 2) {
+        mainWindow->disableSideMenu();
         WordResourceClient* client = new WordResourceClient;
         connect(client, &WordResourceClient::fetchWordHintsDone, this, &SearchWidget::onFetchWordHintsDone);
         client->fetchWordHints(text);
@@ -58,5 +61,7 @@ void SearchWidget::onFetchWordHintsDone(WordResourceClient::ResponseCode code, Q
     } else {
         QMessageBox::warning(QApplication::activeWindow(), "Błąd", "Wystąpił błąd. Pracujemy nad tym");
     }
+
+    mainWindow->enableSideMenu();
 }
 

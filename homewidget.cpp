@@ -10,6 +10,7 @@
 HomeWidget::HomeWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::HomeWidget),
+    mainWindow((MainWindow*) QApplication::activeWindow()),
     settings(new QSettings("dawid", "LanguageTutor"))
 {
     ui->setupUi(this);
@@ -25,12 +26,15 @@ HomeWidget::HomeWidget(QWidget *parent) :
     connect(repsClient, &RepetititionsResourceClient::fetchRecentRepetitionsDone, this, &HomeWidget::onFetchRecentRepetitionsDone);
     repsClient->fetchRepetitionsCount();
     repsClient->fetchRecentRepetitions(5);
+
+    mainWindow->disableSideMenu();
 }
 
 HomeWidget::~HomeWidget()
 {
     delete ui;
     delete settings;
+    delete mainWindow;
 }
 
 void HomeWidget::onFetchRepetitionsCountDone(RepetititionsResourceClient::ResponseCode responseCode, QString repsCount) {
@@ -50,6 +54,8 @@ void HomeWidget::onFetchRecentRepetitionsDone(RepetititionsResourceClient::Respo
 
     hideLoadingScreen();
     showHomeScreen();
+
+    mainWindow->enableSideMenu();
 }
 
 void HomeWidget::setWelcomeMessage(QString username) {
