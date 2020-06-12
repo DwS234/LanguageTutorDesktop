@@ -9,7 +9,7 @@ class AuthResourceClient : public ResourceClient
     Q_OBJECT
 public:
     AuthResourceClient(QString username, QString password, QString email="");
-    enum ResponseCode {OK, INVALID_CREDENTIALS, BAD_REQUEST, INVALID_REGISTRATION_TOKEN, INTERNAL_SERVER_ERROR};
+    enum ResponseCode {OK, INVALID_CREDENTIALS, BAD_REQUEST, INVALID_REGISTRATION_TOKEN, INTERNAL_SERVER_ERROR, ACCOUNT_NOT_ACTIVATED};
 
     void login();
     void registerUser();

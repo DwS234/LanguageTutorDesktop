@@ -19,10 +19,8 @@ int main(int argc, char *argv[])
     LoginWindow loginWindow;
 
     if(settings->contains("accessToken")) {
-        qDebug("Access token found");
         JwtHandler jwtHandler{settings->value("accessToken").toString(), settings->value("accessTokenExp").toLongLong()};
         if(jwtHandler.isTokenValid()) {
-            qDebug("Access token valid");
             mainWindow.show();
         } else {
             settings->clear();

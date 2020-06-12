@@ -23,7 +23,6 @@ public:
     void enableSideMenu();
 
 private slots:
-    void replyFinished(QNetworkReply* reply);
     void onLogoutButtonClicked();
     void onSideMenuCurrentItemChanged(QListWidgetItem* current, QListWidgetItem* previous);
 
@@ -32,11 +31,9 @@ private:
     QWidget* currentMainContent;
     QSettings* settings;
     QMap<QString, QVariant> userMap;
-    QNetworkAccessManager* networkAccessManager;
     QListWidgetItem* homeItem;
     QListWidgetItem* wordsItem;
     QListWidgetItem* repsItem;
-    QListWidgetItem* grammarItem;
     QListWidgetItem* searchItem;
     QListWidgetItem* currentSelectedSideMenuItem;
 

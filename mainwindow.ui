@@ -190,22 +190,6 @@
         <property name="topMargin">
          <number>14</number>
         </property>
-        <item>
-         <widget class="QWidget" name="grammar_widget" native="true">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_15">
-           <item>
-            <widget class="QLabel" name="label_2">
-             <property name="text">
-              <string>Grammar</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
        </layout>
       </widget>
      </widget>
@@ -218,7 +202,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>26</height>
+     <height>25</height>
     </rect>
    </property>
   </widget>

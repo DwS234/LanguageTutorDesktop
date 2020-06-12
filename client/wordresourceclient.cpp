@@ -62,7 +62,6 @@ void WordResourceClient::fetchWordHints(QString text) {
 }
 
 void WordResourceClient::fetchWords(int page) {
-    qDebug("Page: %d", page);
     QMap<QString, QString> queryParams;
     queryParams.insert("page", QString::number(page));
 

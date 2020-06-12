@@ -77,6 +77,8 @@ void LoginWindow::onLoginDone(AuthResourceClient::ResponseCode responseCode) {
         hide();
     } else if(responseCode == AuthResourceClient::ResponseCode::INVALID_CREDENTIALS) {
         QMessageBox::warning(this, "Niepoprawne dane logowania", "Niepoprawna nazwa użytkownika lub hasło");
+    } else if(responseCode == AuthResourceClient::ResponseCode::ACCOUNT_NOT_ACTIVATED) {
+        QMessageBox::warning(this, "Nieaktywowano konta", "Aby móc się zalogować, musisz aktywować swoje konto.");
     } else {
         QMessageBox::warning(this, "Błąd", "Wystąpił błąd. Pracujemy nad tym");
     }

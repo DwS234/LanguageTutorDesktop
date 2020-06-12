@@ -15,37 +15,21 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow),
-      settings(new QSettings("dawid", "LanguageTutor")),
-      networkAccessManager(new QNetworkAccessManager(this))
+      settings(new QSettings("dawid", "LanguageTutor"))
 {
-    if(settings->contains("accessToken")) {
-       ui->setupUi(this);
+   ui->setupUi(this);
 
-       ui->grammar_widget->setVisible(false);
-       userMap = settings->value("user").toMap();
+   userMap = settings->value("user").toMap();
 
-       createSideMenu();
+   createSideMenu();
 
-       connect(networkAccessManager, &QNetworkAccessManager::finished, this, &MainWindow::replyFinished);
-       connect(ui->logoutPushButton, &QPushButton::clicked, this, &MainWindow::onLogoutButtonClicked);
-       connect(ui->sideMenu, &QListWidget::currentItemChanged, this, &MainWindow::onSideMenuCurrentItemChanged);
-    }
+   connect(ui->logoutPushButton, &QPushButton::clicked, this, &MainWindow::onLogoutButtonClicked);
+   connect(ui->sideMenu, &QListWidget::currentItemChanged, this, &MainWindow::onSideMenuCurrentItemChanged);
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
-}
-
-void MainWindow::replyFinished(QNetworkReply* reply) {
-    QVariant statusCodeV = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-    int statusCode = statusCodeV.toInt();
-    if(statusCode >= 200 && statusCode <= 299) {
-
-    } else {
-        QMessageBox::warning(this, "Błąd", "Wystąpił błąd. Pracujemy nad tym");
-    }
-    reply->deleteLater();
 }
 
 void MainWindow::onSideMenuCurrentItemChanged(QListWidgetItem* current, QListWidgetItem* previous) {
@@ -62,8 +46,6 @@ void MainWindow::onSideMenuCurrentItemChanged(QListWidgetItem* current, QListWid
             ui->main_content_wrapper->removeWidget(currentMainContent);
             currentMainContent->close();
         }
-        else if(previous == grammarItem)
-            ui->grammar_widget->setVisible(false);
         else if(previous == searchItem) {
             ui->main_content_wrapper->removeWidget(currentMainContent);
             currentMainContent->close();
@@ -82,8 +64,6 @@ void MainWindow::onSideMenuCurrentItemChanged(QListWidgetItem* current, QListWid
         RepetitionsWidget* repsWidget = new RepetitionsWidget;
         currentMainContent = repsWidget;
         ui->main_content_wrapper->addWidget(repsWidget);
-    } else if(current == grammarItem) {
-        ui->grammar_widget->setVisible(true);
     } else if(current == searchItem) {
         SearchWidget* searchWidget = new SearchWidget;
         currentMainContent = searchWidget;
@@ -121,12 +101,6 @@ void MainWindow::createSideMenu() {
     repsItemFont.setPointSize(12);
     repsItem->setFont(repsItemFont);
     repsItem->setTextAlignment(Qt::AlignCenter);
-
-    grammarItem =  new QListWidgetItem(tr("Gramatyka"), sideMenu);
-    QFont grammarItemFont = grammarItem->font();
-    grammarItemFont.setPointSize(12);
-    grammarItem->setFont(grammarItemFont);
-    grammarItem->setTextAlignment(Qt::AlignCenter);
 
     searchItem =  new QListWidgetItem(tr("Szukaj"), sideMenu);
     QFont searchItemFont = searchItem->font();

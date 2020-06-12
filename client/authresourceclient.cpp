@@ -50,7 +50,10 @@ void AuthResourceClient::replyFinished(QNetworkReply* reply) {
             emit loginDone(OK);
         } else if(statusCode == 401) {
             emit loginDone(INVALID_CREDENTIALS);
-        } else {
+        } else if(statusCode == 403) {
+            emit loginDone(ACCOUNT_NOT_ACTIVATED);
+        }
+        else {
             emit loginDone(INTERNAL_SERVER_ERROR);
         }
     } else if(isThisSignUpResponse(path)) {
