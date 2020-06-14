@@ -9,6 +9,7 @@
 #include "QPushButton"
 #include "QSizePolicy"
 #include "QMessageBox"
+#include "QFile"
 
 WordSearchResultsDialog::WordSearchResultsDialog(QString wordToSearch, QWidget *parent) :
     QDialog(parent),
@@ -18,6 +19,11 @@ WordSearchResultsDialog::WordSearchResultsDialog(QString wordToSearch, QWidget *
     repsClient(new RepetititionsResourceClient)
 {
     ui->setupUi(this);
+    QFile File(":/stylesheet/stylesheet.qss");
+    File.open(QFile::ReadOnly);
+    QString StyleSheet = QLatin1String(File.readAll());
+    ui->scrollAreaWidgetContents->setStyleSheet(StyleSheet);
+
     hideLoadingScreen();
     setWindowTitle(wordToSearch);
 
@@ -55,10 +61,14 @@ void WordSearchResultsDialog::setWordSearchResults(QList<Word> words) {
             QPushButton* addDeleteRepButton = new QPushButton;
             addDeleteRepButton->setProperty("word_id", word.getId());
             addDeleteRepButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-            if(inRepetition)
+            if(inRepetition) {
                 addDeleteRepButton->setText("-");
-            else
+                addDeleteRepButton->setProperty("class", "btn btn-danger");
+            } else {
                 addDeleteRepButton->setText("+");
+                addDeleteRepButton->setProperty("class", "btn btn-success");
+            }
+
             connect(addDeleteRepButton, &QPushButton::clicked, this, &WordSearchResultsDialog::onWordAddDeleteClicked);
             meaningWrapper->addWidget(addDeleteRepButton);
 
@@ -102,6 +112,10 @@ void WordSearchResultsDialog::onWordAddDeleteClicked() {
 void WordSearchResultsDialog::onAddWordToRepsDone(RepetititionsResourceClient::ResponseCode code) {
     if(code == RepetititionsResourceClient::OK) {
         lastAddDeleteRepClicked->setText("-");
+        lastAddDeleteRepClicked->setProperty("class", "btn btn-danger");
+        lastAddDeleteRepClicked->style()->unpolish(lastAddDeleteRepClicked);
+        lastAddDeleteRepClicked->style()->polish(lastAddDeleteRepClicked);
+        lastAddDeleteRepClicked->update();
         showSearchResultsScreen();
         hideLoadingScreen();
     } else {
@@ -112,6 +126,10 @@ void WordSearchResultsDialog::onAddWordToRepsDone(RepetititionsResourceClient::R
 void WordSearchResultsDialog::onDeleteRepDone(RepetititionsResourceClient::ResponseCode code) {
     if(code == RepetititionsResourceClient::OK) {
         lastAddDeleteRepClicked->setText("+");
+        lastAddDeleteRepClicked->setProperty("class", "btn btn-success");
+        lastAddDeleteRepClicked->style()->unpolish(lastAddDeleteRepClicked);
+        lastAddDeleteRepClicked->style()->polish(lastAddDeleteRepClicked);
+        lastAddDeleteRepClicked->update();
         showSearchResultsScreen();
         hideLoadingScreen();
     } else {

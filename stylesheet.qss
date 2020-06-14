@@ -3,12 +3,36 @@ QFrame[cssClass="auth_wrapper"] {
     color: white;
 }
 
+.card {
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.card-dark {
+    background-color: #292929;
+}
+
 QLineEdit[cssClass="lineEdit-dark"] {
     background-color: #3e4042;
     border: none;
     border-radius: 5px;
     color: white;
     padding: 10px;
+}
+
+.btn {
+    border: none;
+    outline: none;
+    border-radius: 5px;
+    padding: 5px 15px;
+}
+
+.btn-success {
+    background-color: #28a745;
+}
+
+.btn-danger {
+    background-color: #dc3545;
 }
 
 .QPushButton[cssClass="pushButton-dark"]

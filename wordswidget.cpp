@@ -6,6 +6,7 @@
 #include "QLabel"
 #include "QNetworkReply"
 #include "QMessageBox"
+#include "QFile"
 
 WordsWidget::WordsWidget(QWidget *parent) :
     QWidget(parent),
@@ -15,6 +16,10 @@ WordsWidget::WordsWidget(QWidget *parent) :
     repsClient(new RepetititionsResourceClient)
 {
     ui->setupUi(this);
+    QFile File(":/stylesheet/stylesheet.qss");
+    File.open(QFile::ReadOnly);
+    QString StyleSheet = QLatin1String(File.readAll());
+    setStyleSheet(StyleSheet);
     showLoadingScreen();
     hideWordsScreen();
 
@@ -74,8 +79,10 @@ QFrame* WordsWidget::createWordFrame(Word word) {
     pushButton->setProperty("word_id", word.getId());
     if(word.isInRepetition()) {
         pushButton->setText("-");
+        pushButton->setProperty("class", "btn btn-danger");
     } else {
         pushButton->setText("+");
+        pushButton->setProperty("class", "btn btn-success");
     }
     QFont pushButtonFont = pushButton->font();
     pushButtonFont.setPointSize(10);
@@ -84,7 +91,7 @@ QFrame* WordsWidget::createWordFrame(Word word) {
     vBoxLayout->addWidget(pushButton);
 
     wordFrame->setLayout(vBoxLayout);
-    wordFrame->setStyleSheet("background-color: #242526;");
+    wordFrame->setProperty("class", "card card-dark");
 
     connect(pushButton, &QPushButton::clicked, this, &WordsWidget::onWordAddDeleteClicked);
     return wordFrame;
@@ -150,6 +157,10 @@ void WordsWidget::hideWordsScreen() {
 void WordsWidget::onAddWordToRepsDone(RepetititionsResourceClient::ResponseCode code) {
     if(code == RepetititionsResourceClient::OK) {
         lastAddDeleteRepClicked->setText("-");
+        lastAddDeleteRepClicked->setProperty("class", "btn btn-danger");
+        lastAddDeleteRepClicked->style()->unpolish(lastAddDeleteRepClicked);
+        lastAddDeleteRepClicked->style()->polish(lastAddDeleteRepClicked);
+        lastAddDeleteRepClicked->update();
         showWordsScreen();
         hideLoadingScreen();
     } else {
@@ -162,6 +173,10 @@ void WordsWidget::onAddWordToRepsDone(RepetititionsResourceClient::ResponseCode 
 void WordsWidget::onDeleteRepDone(RepetititionsResourceClient::ResponseCode code) {
     if(code == RepetititionsResourceClient::OK) {
         lastAddDeleteRepClicked->setText("+");
+        lastAddDeleteRepClicked->setProperty("class", "btn btn-success");
+        lastAddDeleteRepClicked->style()->unpolish(lastAddDeleteRepClicked);
+        lastAddDeleteRepClicked->style()->polish(lastAddDeleteRepClicked);
+        lastAddDeleteRepClicked->update();
         showWordsScreen();
         hideLoadingScreen();
     } else {
