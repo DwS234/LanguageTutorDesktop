@@ -11,7 +11,7 @@ Q_OBJECT
 public:
     explicit ResourceClient(QObject *parent = nullptr);
     ~ResourceClient();
-protected:
+
     const QString BASE_URL;
     QNetworkAccessManager* networkAccessManager;
     QSettings* settings;

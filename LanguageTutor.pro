@@ -1,4 +1,4 @@
-QT       += core gui network
+QT       += core gui network testlib
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -30,6 +30,8 @@ SOURCES += \
     registerwindow.cpp \
     repetitionswidget.cpp \
     searchwidget.cpp \
+    tests/testjwthandler.cpp \
+    tests/testresourceclient.cpp \
     wordsearchresultsdialog.cpp \
     wordswidget.cpp
 
@@ -47,6 +49,8 @@ HEADERS += \
     registerwindow.h \
     repetitionswidget.h \
     searchwidget.h \
+    tests/testjwthandler.h \
+    tests/testresourceclient.h \
     wordsearchresultsdialog.h \
     wordswidget.h
 
